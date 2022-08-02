@@ -1,6 +1,6 @@
 module.exports = {
-    httpUnsafeOrigin: 'http://localhost:3000',
-    // httpSafeOrigin: "https://some-other-domain.xyz",
+    httpUnsafeOrigin: 'https://docs.seanhealy.ie',
+    httpSafeOrigin: "https://secure-docs.seanhealy.ie",
     httpAddress: '::',
     httpPort: 3000,
     httpSafePort: 3001,
