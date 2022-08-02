@@ -2,15 +2,16 @@ from typing import List
 from user_actions.UserAction import UserAction
 from time import sleep
 from constants import (
-	APT_GET_BINARY, COCKROACH_BINARY, COCKROACH_BINARY_NAME,
+	APT_GET_BINARY, BOWER_BINARY, COCKROACH_BINARY, COCKROACH_BINARY_NAME,
 	COCKROACH_INSTALL_URL, CRYPTPAD_CONFIG_DST, CRYPTPAD_CONFIG_SRC,
-	CRYPTPAD_DIR_PATH, CRYPTPAD_SOURCE, GARAGE_BINARY, GARAGE_INSTALL_URL,
-	GIT_BINARY, PROJECT_SOURCE, GROBID_DIR_PATH, GROBID_EXEC_PATH,
-	GROBID_SOURCE, PACMAN_BINARY, PROJECT_ETC_DIR, PROJECT_GIT_DIR,
-	SERVICE_BINARY, SSH_CLIENT, SYSTEMCTL_BINARY, TMP_DIR, UFW_BINARY,
-	WORKING_DIR,
+	CRYPTPAD_DIR_PATH, CRYPTPAD_GID, CRYPTPAD_SOURCE, CRYPTPAD_UID, CRYPTPAD_USER,
+	CRYPTPAD_USER_DIR, GARAGE_BINARY, GARAGE_INSTALL_URL, GIT_BINARY, GROUPADD_BINARY,
+	NEW_NPM_BINARY, OLD_NPM_BINARY, PIP_BINARY, PROJECT_SOURCE, GROBID_DIR_PATH,
+	GROBID_EXEC_PATH, GROBID_SOURCE, PACMAN_BINARY, PROJECT_ETC_DIR,
+	PROJECT_GIT_DIR, SERVICE_BINARY, SSH_CLIENT, SUDO_BINARY, SYSTEMCTL_BINARY,
+	TMP_DIR, UFW_BINARY, USERADD_BINARY, WORKING_DIR,
 )
-from os import makedirs, walk, chmod
+from os import makedirs, walk, chmod, chown
 from os.path import exists, join, basename
 from shutil import move, rmtree, copy
 from subprocess import Popen, call
@@ -92,10 +93,10 @@ class InstallWorker(UserAction):
 			"minio", "grobid-tei-xml",
 		]
 		npm_packages = [
-			"bower", "node"
+			"bower", "node", "npm"
 		]
-		threads.append(Popen(["pip3", "install", *pip3_packages]))
-		threads.append(Popen(["npm", "install", "-g", *npm_packages]))
+		threads.append(Popen([PIP_BINARY, "install", *pip3_packages]))
+		threads.append(Popen([OLD_NPM_BINARY, "install", "-g", *npm_packages]))
 		if not exists(PROJECT_GIT_DIR):
 			threads.append(
 				Popen([GIT_BINARY, "clone", PROJECT_SOURCE, PROJECT_GIT_DIR]))
@@ -116,7 +117,7 @@ class InstallWorker(UserAction):
 					for key, replacement in {
 						"main_host": "seanhealy.ie",
 					}.items():
-						string = f"{{{{{key}}}}}",
+						string = f"{{{{{key}}}}}"
 						content = (
 							content.replace(string, replacement)
 						)
@@ -144,9 +145,34 @@ class InstallWorker(UserAction):
 					file_path = join(path, file)
 					chmod(file_path, 0o700)
 		if not exists(CRYPTPAD_DIR_PATH):
-			Popen([GIT_BINARY, "clone", CRYPTPAD_SOURCE, CRYPTPAD_DIR_PATH]).wait()
-			Popen(["npm", "install"], cwd=CRYPTPAD_DIR_PATH).wait()
-			Popen(["bower", "install"], cwd=CRYPTPAD_DIR_PATH).wait()
+			Popen([
+				GROUPADD_BINARY,
+				"-g", str(CRYPTPAD_GID),
+				CRYPTPAD_USER
+			]).wait()
+			Popen([
+				USERADD_BINARY,
+				"-u", str(CRYPTPAD_UID),
+				"-g", str(CRYPTPAD_GID),
+				CRYPTPAD_USER
+			]).wait()
+			if not exists(CRYPTPAD_USER_DIR):
+				makedirs(CRYPTPAD_USER_DIR)
+				chown(CRYPTPAD_USER_DIR, CRYPTPAD_UID, CRYPTPAD_GID)
+			Popen(
+				[
+					SUDO_BINARY, "-u", CRYPTPAD_USER, GIT_BINARY, "clone",
+					CRYPTPAD_SOURCE, CRYPTPAD_DIR_PATH,
+				]
+			).wait()
+			Popen(
+				[SUDO_BINARY, "-u", CRYPTPAD_USER, NEW_NPM_BINARY, "install"],
+				cwd=CRYPTPAD_DIR_PATH
+			).wait()
+			Popen(
+				[SUDO_BINARY, "-u", CRYPTPAD_USER, BOWER_BINARY, "install"],
+				cwd=CRYPTPAD_DIR_PATH
+			).wait()
 			if not exists(CRYPTPAD_CONFIG_DST):
 				copy(CRYPTPAD_CONFIG_SRC, CRYPTPAD_CONFIG_DST)
 		if not exists(COCKROACH_BINARY):

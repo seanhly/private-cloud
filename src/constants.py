@@ -17,7 +17,12 @@ GROBID_DIR_NAME = f"grobid-{GROBID_VERSION}"
 WORKING_DIR = environ["HOME"]
 
 GROBID_DIR_PATH = join(WORKING_DIR, GROBID_DIR_NAME)
-CRYPTPAD_DIR_PATH = f"/{basename(CRYPTPAD_SOURCE)}"
+CRYPTPAD_USER = "cryptpad"
+CRYPTPAD_UID = 99
+CRYPTPAD_GID = 99
+CRYPTPAD_LABEL = basename(CRYPTPAD_SOURCE)
+CRYPTPAD_USER_DIR = join("/home", CRYPTPAD_USER)
+CRYPTPAD_DIR_PATH = join(CRYPTPAD_USER_DIR, CRYPTPAD_LABEL)
 GROBID_EXEC_PATH = join(GROBID_DIR_PATH, "gradlew")
 
 USER = environ['USER']
@@ -71,7 +76,14 @@ SERVICE_BINARY = "/usr/sbin/service"
 REDIS_CLI_BINARY = "/usr/bin/redis-cli"
 SSH_BINARY = "/usr/bin/ssh"
 SSH_KEYGEN_BINARY = "/usr/bin/ssh-keygen"
+SUDO_BINARY = "/usr/bin/sudo"
+OLD_NPM_BINARY = "/usr/bin/node"
+NEW_NPM_BINARY = "/usr/local/bin/node"
 NODE_BINARY = "/usr/local/bin/node"
+BOWER_BINARY = "/usr/local/bin/bower"
+USERADD_BINARY = "/usr/sbin/useradd"
+GROUPADD_BINARY = "/usr/sbin/groupadd"
+PIP_BINARY = "/usr/bin/pip3"
 
 SSH_CLIENT = environ.get("SSH_CLIENT", "127.0.0.1").strip().split()[0]
 

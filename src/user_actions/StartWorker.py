@@ -2,9 +2,9 @@ from typing import Dict, List, Optional, Tuple
 from user_actions.ConnectGarageWorkers import ConnectGarageWorkers
 from user_actions.UserAction import UserAction
 from constants import (
-	COCKROACH_BINARY, COCKROACH_BINARY_NAME, COCKROACH_PORT, COCKROACH_WEB_PORT, CRYPTPAD_DIR_PATH, CRYPTPAD_SOURCE,
+	COCKROACH_BINARY, COCKROACH_BINARY_NAME, COCKROACH_PORT, COCKROACH_WEB_PORT, CRYPTPAD_DIR_PATH, CRYPTPAD_SOURCE, CRYPTPAD_USER,
 	GARAGE_BINARY, GARAGE_BINARY_NAME, GROBID_DIR_PATH,
-	GROBID_EXEC_PATH,
+	GROBID_EXEC_PATH, SUDO_BINARY,
 	TMUX_BINARY
 )
 from subprocess import Popen, call
@@ -85,28 +85,36 @@ class StartWorker(UserAction):
 		services: Dict[str, Tuple[Optional[str], str]] = {
 			"grobid": (
 				GROBID_DIR_PATH,
+				None,
 				f"/usr/bin/sh {GROBID_EXEC_PATH} run"
 			),
 			GARAGE_BINARY_NAME: (
+				None,
 				None,
 				f"{GARAGE_BINARY} server"
 			),
 			COCKROACH_BINARY_NAME: (
 				None,
+				None,
 				cockroach_cmd
 			),
 			basename(CRYPTPAD_SOURCE): (
 				CRYPTPAD_DIR_PATH,
+				CRYPTPAD_USER,
 				"node server.js"
 			)
 		}
 		threads: List[Popen] = []
 		print("Running services in TMUX...")
-		for name, (cwd, cmd) in services.items():
-			if call([TMUX_BINARY, "has-session", "-t", name]) != 0:
+		for name, (cwd, user, cmd) in services.items():
+			sudo_prefix = [SUDO_BINARY, "-u", user] if user else []
+			if call([*sudo_prefix, TMUX_BINARY, "has-session", "-t", name]) != 0:
 				threads.append(
 					Popen(
-						[TMUX_BINARY, "new-session", "-d", "-s", name, cmd],
+						[
+							*sudo_prefix,
+							TMUX_BINARY, "new-session", "-d", "-s", name, cmd,
+						],
 						cwd=cwd,
 					)
 				)
