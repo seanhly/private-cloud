@@ -1,14 +1,14 @@
-from multiprocessing.connection import wait
 from typing import List
 from user_actions.UserAction import UserAction
 from time import sleep
 from constants import (
 	APT_GET_BINARY, COCKROACH_BINARY, COCKROACH_BINARY_NAME,
-	COCKROACH_INSTALL_URL, CRYPTPAD_CONFIG_DST, CRYPTPAD_CONFIG_SRC, CRYPTPAD_DIR_PATH, CRYPTPAD_SOURCE, GARAGE_BINARY, GARAGE_INSTALL_URL, GIT_BINARY,
-	PROJECT_SOURCE, GROBID_DIR_PATH, GROBID_EXEC_PATH, GROBID_SOURCE,
-	PACMAN_BINARY, PROJECT_ETC_DIR, PROJECT_GIT_DIR, RSYNC_BINARY,
+	COCKROACH_INSTALL_URL, CRYPTPAD_CONFIG_DST, CRYPTPAD_CONFIG_SRC,
+	CRYPTPAD_DIR_PATH, CRYPTPAD_SOURCE, GARAGE_BINARY, GARAGE_INSTALL_URL,
+	GIT_BINARY, PROJECT_SOURCE, GROBID_DIR_PATH, GROBID_EXEC_PATH,
+	GROBID_SOURCE, PACMAN_BINARY, PROJECT_ETC_DIR, PROJECT_GIT_DIR,
 	SERVICE_BINARY, SSH_CLIENT, SYSTEMCTL_BINARY, TMP_DIR, UFW_BINARY,
-	WORKING_DIR
+	WORKING_DIR,
 )
 from os import makedirs, walk, chmod
 from os.path import exists, join, basename
@@ -104,7 +104,6 @@ class InstallWorker(UserAction):
 		services = ["nginx", "redis-server", "transmission-daemon"]
 		for service in services:
 			threads.append(Popen([SYSTEMCTL_BINARY, "enable", service]))
-		threads.append(Popen([RSYNC_BINARY, "-a", PROJECT_ETC_DIR, "/"]))
 		for src_dir, _, files in walk(PROJECT_ETC_DIR):
 			dst_dir = join("/", src_dir)
 			if not exists(dst_dir):
