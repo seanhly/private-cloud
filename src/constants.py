@@ -17,7 +17,7 @@ GROBID_DIR_NAME = f"grobid-{GROBID_VERSION}"
 WORKING_DIR = environ["HOME"]
 
 GROBID_DIR_PATH = join(WORKING_DIR, GROBID_DIR_NAME)
-CRYPTPAD_DIR_PATH = join(WORKING_DIR, basename(CRYPTPAD_SOURCE))
+CRYPTPAD_DIR_PATH = f"/{basename(CRYPTPAD_SOURCE)}"
 GROBID_EXEC_PATH = join(GROBID_DIR_PATH, "gradlew")
 
 USER = environ['USER']
@@ -71,6 +71,7 @@ SERVICE_BINARY = "/usr/sbin/service"
 REDIS_CLI_BINARY = "/usr/bin/redis-cli"
 SSH_BINARY = "/usr/bin/ssh"
 SSH_KEYGEN_BINARY = "/usr/bin/ssh-keygen"
+NODE_BINARY = "/usr/local/bin/node"
 
 SSH_CLIENT = environ.get("SSH_CLIENT", "127.0.0.1").strip().split()[0]
 
@@ -80,3 +81,5 @@ HOSTNAME_FILE = "/etc/hostname"
 
 CRYPTPAD_CONFIG_SRC = join(PROJECT_GIT_DIR, "config/cryptpad.js")
 CRYPTPAD_CONFIG_DST = join(CRYPTPAD_DIR_PATH, "config/config.js")
+CRYPTPAD_NGINX_CONFIG_SRC = join(PROJECT_GIT_DIR, "cryptpad.nginx.conf")
+CRYPTPAD_NGINX_CONFIG_DST = join("/etc")

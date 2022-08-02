@@ -57,6 +57,8 @@ class InstallWorker(UserAction):
 				"python3-redis",
 				"python3-dateparser",
 				"npm",
+				"certbot",
+				"python3-certbot-nginx",
 			]
 
 			def deb_install() -> int:
@@ -76,6 +78,8 @@ class InstallWorker(UserAction):
 				"python-requests",
 				"python-dateparser",
 				"npm",
+				"certbot",
+				"python-certbot-nginx",
 			]
 			threads.append(
 				Popen([
@@ -88,7 +92,7 @@ class InstallWorker(UserAction):
 			"minio", "grobid-tei-xml",
 		]
 		npm_packages = [
-			"bower",
+			"bower", "node"
 		]
 		threads.append(Popen(["pip3", "install", *pip3_packages]))
 		threads.append(Popen(["npm", "install", "-g", *npm_packages]))
@@ -101,6 +105,24 @@ class InstallWorker(UserAction):
 		for service in services:
 			threads.append(Popen([SYSTEMCTL_BINARY, "enable", service]))
 		threads.append(Popen([RSYNC_BINARY, "-a", PROJECT_ETC_DIR, "/"]))
+		for src_dir, _, files in walk(PROJECT_ETC_DIR):
+			dst_dir = join("/", src_dir)
+			if not exists(dst_dir):
+				makedirs(dst_dir)
+			for file in files:
+				src_path = join(src_dir, file)
+				dst_path = join(dst_dir, file)
+				with open(src_path, "r") as src_file:
+					content = src_file.read()
+					for key, replacement in {
+						"main_host": "seanhealy.ie",
+					}.items():
+						string = f"{{{{{key}}}}}",
+						content = (
+							content.replace(string, replacement)
+						)
+				with open(dst_path, "w") as dst_file:
+					dst_file.write(content)
 		# Wait for config writes and service enabling.
 		wait_then_clear(threads)
 		for service in services:
