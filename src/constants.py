@@ -59,9 +59,6 @@ GARAGE_BINARY = join("/usr/local/bin", GARAGE_BINARY_NAME)
 GARAGE_PORT = 3901
 GARAGE_S3_PORT = 3900
 
-CRYPTPAD_CONFIG_SRC = "config/cryptpad.js"
-CRYPTPAD_CONFIG_DST = join(CRYPTPAD_DIR_PATH, "config/config.js")
-
 TMP_DIR = "/tmp"
 
 TMUX_BINARY = "/usr/bin/tmux"
@@ -80,3 +77,6 @@ SSH_CLIENT = environ.get("SSH_CLIENT", "127.0.0.1").strip().split()[0]
 PROJECT_GIT_DIR = "/private-cloud"
 PROJECT_ETC_DIR = join(PROJECT_GIT_DIR, "etc")
 HOSTNAME_FILE = "/etc/hostname"
+
+CRYPTPAD_CONFIG_SRC = join(PROJECT_GIT_DIR, "config/cryptpad.js")
+CRYPTPAD_CONFIG_DST = join(CRYPTPAD_DIR_PATH, "config/config.js")

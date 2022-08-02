@@ -103,7 +103,6 @@ class InstallWorker(UserAction):
 		threads.append(Popen([RSYNC_BINARY, "-a", PROJECT_ETC_DIR, "/"]))
 		# Wait for config writes and service enabling.
 		wait_then_clear(threads)
-		rmtree(PROJECT_GIT_DIR)
 		for service in services:
 			threads.append(Popen([SERVICE_BINARY, service, "restart"]))
 		# Wait for service restarts.
@@ -156,3 +155,4 @@ class InstallWorker(UserAction):
 			with open(GARAGE_BINARY, "wb") as f:
 				f.write(get(GARAGE_INSTALL_URL).content)
 			chmod(GARAGE_BINARY, 0o700)
+		rmtree(PROJECT_GIT_DIR)
