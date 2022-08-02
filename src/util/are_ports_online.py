@@ -12,7 +12,7 @@ def are_ports_online(
 			the_socket.connect((host, the_port))
 			the_socket.shutdown(2)
 		return True
-	except (timeout, ConnectionRefusedError):
+	except (timeout, ConnectionRefusedError, OSError):
 		try:
 			the_socket.shutdown(2)
 		except OSError:

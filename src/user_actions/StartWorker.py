@@ -2,7 +2,7 @@ from typing import Dict, List, Optional, Tuple
 from user_actions.ConnectGarageWorkers import ConnectGarageWorkers
 from user_actions.UserAction import UserAction
 from constants import (
-	COCKROACH_BINARY, COCKROACH_BINARY_NAME, COCKROACH_PORT, COCKROACH_WEB_PORT,
+	COCKROACH_BINARY, COCKROACH_BINARY_NAME, COCKROACH_PORT, COCKROACH_WEB_PORT, CRYPTPAD_DIR_PATH, CRYPTPAD_SOURCE,
 	GARAGE_BINARY, GARAGE_BINARY_NAME, GROBID_DIR_PATH,
 	GROBID_EXEC_PATH,
 	TMUX_BINARY
@@ -12,6 +12,7 @@ from util.redis_utils import get_public_ipv4
 from util.wait_then_clear import wait_then_clear
 from util.are_ports_online import are_ports_online
 import time
+from os.path import basename
 
 
 class StartWorker(UserAction):
@@ -94,6 +95,10 @@ class StartWorker(UserAction):
 				None,
 				cockroach_cmd
 			),
+			basename(CRYPTPAD_SOURCE): (
+				CRYPTPAD_DIR_PATH,
+				"node server.js"
+			)
 		}
 		threads: List[Popen] = []
 		print("Running services in TMUX...")

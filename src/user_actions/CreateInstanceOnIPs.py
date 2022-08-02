@@ -36,17 +36,18 @@ class CreateInstanceOnIPs(UserAction):
 		# New IPs are fed in as arguments.
 		# Details for these IPs are then pulled from the Pool cache.
 		all_instances = Pool.load(Vultr).pool
+		new_instance_ips = {a.ip for a in self.ip_arguments}
 		new_instances = [
 			instance
 			for instance in all_instances
-			if instance.main_ip in self.ip_arguments
+			if instance.main_ip in new_instance_ips
 		]
 		previous_instances = [
 			instance
 			for instance in all_instances
-			if instance.main_ip not in self.ip_arguments
+			if instance.main_ip not in new_instance_ips
 		]
-		new_instance_ips = {i.main_ip for i in new_instances}
+		print("New:", str(new_instance_ips))
 		previous_instance_ips = {i.main_ip for i in previous_instances}
 		threads: List[Popen] = []
 		# Bootstrap a system onto each worker.

@@ -1,9 +1,10 @@
+from multiprocessing.connection import wait
 from typing import List
 from user_actions.UserAction import UserAction
 from time import sleep
 from constants import (
 	APT_GET_BINARY, COCKROACH_BINARY, COCKROACH_BINARY_NAME,
-	COCKROACH_INSTALL_URL, GARAGE_BINARY, GARAGE_INSTALL_URL, GIT_BINARY,
+	COCKROACH_INSTALL_URL, CRYPTPAD_CONFIG_DST, CRYPTPAD_CONFIG_SRC, CRYPTPAD_DIR_PATH, CRYPTPAD_SOURCE, GARAGE_BINARY, GARAGE_INSTALL_URL, GIT_BINARY,
 	PROJECT_SOURCE, GROBID_DIR_PATH, GROBID_EXEC_PATH, GROBID_SOURCE,
 	PACMAN_BINARY, PROJECT_ETC_DIR, PROJECT_GIT_DIR, RSYNC_BINARY,
 	SERVICE_BINARY, SSH_CLIENT, SYSTEMCTL_BINARY, TMP_DIR, UFW_BINARY,
@@ -11,7 +12,7 @@ from constants import (
 )
 from os import makedirs, walk, chmod
 from os.path import exists, join, basename
-from shutil import move, rmtree
+from shutil import move, rmtree, copy
 from subprocess import Popen, call
 from zipfile import ZipFile
 from io import BytesIO
@@ -55,6 +56,7 @@ class InstallWorker(UserAction):
 				"transmission-daemon",
 				"python3-redis",
 				"python3-dateparser",
+				"npm",
 			]
 
 			def deb_install() -> int:
@@ -73,6 +75,7 @@ class InstallWorker(UserAction):
 				"python-redis",
 				"python-requests",
 				"python-dateparser",
+				"npm",
 			]
 			threads.append(
 				Popen([
@@ -84,7 +87,11 @@ class InstallWorker(UserAction):
 		pip3_packages = [
 			"minio", "grobid-tei-xml",
 		]
+		npm_packages = [
+			"bower",
+		]
 		threads.append(Popen(["pip3", "install", *pip3_packages]))
+		threads.append(Popen(["npm", "install", "-g", *npm_packages]))
 		if not exists(PROJECT_GIT_DIR):
 			threads.append(
 				Popen([GIT_BINARY, "clone", PROJECT_SOURCE, PROJECT_GIT_DIR]))
@@ -116,6 +123,12 @@ class InstallWorker(UserAction):
 				for file in files:
 					file_path = join(path, file)
 					chmod(file_path, 0o700)
+		if not exists(CRYPTPAD_DIR_PATH):
+			Popen([GIT_BINARY, "clone", CRYPTPAD_SOURCE, CRYPTPAD_DIR_PATH]).wait()
+			Popen(["npm", "install"], cwd=CRYPTPAD_DIR_PATH).wait()
+			Popen(["bower", "install"], cwd=CRYPTPAD_DIR_PATH).wait()
+			if not exists(CRYPTPAD_CONFIG_DST):
+				copy(CRYPTPAD_CONFIG_SRC, CRYPTPAD_CONFIG_DST)
 		if not exists(COCKROACH_BINARY):
 			print("Downloading and untarring CockroachDB...")
 			req = Request(COCKROACH_INSTALL_URL)

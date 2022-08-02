@@ -1,13 +1,15 @@
-from os.path import join, exists
+from os.path import join, exists, basename
 from os import environ, makedirs
 
 GITHUB_REPO = "seanhly/private-cloud"
 GROBID_REPO = "kermitt2/grobid"
+CRYPTPAD_REPO = "xwiki-labs/cryptpad"
 GITHUB_HOST = "https://github.com/"
 RAW_GITHUB_HOST = "https://raw.githubusercontent.com/"
 GARAGE_HOST = "https://garagehq.deuxfleurs.fr/"
 PROJECT_SOURCE = f"{GITHUB_HOST}{GITHUB_REPO}"
 GROBID_SOURCE = f"{GITHUB_HOST}{GROBID_REPO}"
+CRYPTPAD_SOURCE = f"{GITHUB_HOST}{CRYPTPAD_REPO}"
 
 GROBID_VERSION = "0.7.1"
 GROBID_SOURCE = f"{GROBID_SOURCE}/archive/refs/tags/{GROBID_VERSION}.zip"
@@ -15,6 +17,7 @@ GROBID_DIR_NAME = f"grobid-{GROBID_VERSION}"
 WORKING_DIR = environ["HOME"]
 
 GROBID_DIR_PATH = join(WORKING_DIR, GROBID_DIR_NAME)
+CRYPTPAD_DIR_PATH = join(WORKING_DIR, basename(CRYPTPAD_SOURCE))
 GROBID_EXEC_PATH = join(GROBID_DIR_PATH, "gradlew")
 
 USER = environ['USER']
@@ -55,6 +58,9 @@ GARAGE_BINARY_NAME = "garage"
 GARAGE_BINARY = join("/usr/local/bin", GARAGE_BINARY_NAME)
 GARAGE_PORT = 3901
 GARAGE_S3_PORT = 3900
+
+CRYPTPAD_CONFIG_SRC = "config/cryptpad.js"
+CRYPTPAD_CONFIG_DST = join(CRYPTPAD_DIR_PATH, "config/config.js")
 
 TMP_DIR = "/tmp"
 
