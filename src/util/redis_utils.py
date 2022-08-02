@@ -6,20 +6,21 @@ from util.ssh_do import ssh_do
 
 
 def extend_network(host: str, workers: Iterable[str], firewall: bool):
-    workers = set(workers) - {host}
-    if firewall:
-        return ssh_do(
-            host,
-            f"{REDIS_CLI_BINARY} -n {REDIS_WORKER_NETWORK_DB}",
-            stdin=f"sadd network {' '.join(workers)}",
-        )
-    else:
-        from redis import Redis
-        Redis(
-            host=host,
-            db=REDIS_WORKER_NETWORK_DB,
-        ).sadd("network", workers)
-        return None
+	workers = set(workers) - {host}
+	if workers:
+		if firewall:
+			return ssh_do(
+				host,
+				f"{REDIS_CLI_BINARY} -n {REDIS_WORKER_NETWORK_DB}",
+				stdin=f"sadd network {' '.join(workers)}",
+			)
+		else:
+			from redis import Redis
+			Redis(
+				host=host,
+				db=REDIS_WORKER_NETWORK_DB,
+			).sadd("network", workers)
+			return None
 
 
 def remove_from_network(host: str, workers: Iterable[str], firewall: bool):
