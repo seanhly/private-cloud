@@ -68,10 +68,13 @@ class CreateInstanceOnIPs(UserAction):
 				dict(stdin=certbot_suffix)
 				if certbot_suffix else {}
 			)
-			threads.append(ssh_do(
-				new_ip,
-				BOOTSTRAP_SCRIPT,
-			), **kwargs)
+			threads.append(
+				ssh_do(
+					new_ip,
+					BOOTSTRAP_SCRIPT,
+					**kwargs
+				)
+			)
 		wait_then_clear(threads)
 		# New workers can now reach pre-existing workers.
 		# <---|
