@@ -196,7 +196,7 @@ class InstallWorker(UserAction):
 					[UFW_BINARY, "delete", str(ufw_id)],
 					stdin=PIPE,
 				)
-				text: AnyStr = bytes("y", encoding="utf8")
+				text: AnyStr = bytes("y\n", encoding="utf8")
 				p.stdin.write(text)
 				p.wait()
 			Popen([SERVICE_BINARY, "nginx", "start"]).wait()
