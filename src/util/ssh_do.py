@@ -1,4 +1,4 @@
-import subprocess
+from subprocess import PIPE, Popen
 from typing import Iterable, List, Optional, Union, AnyStr
 from constants import PROJECT_PRIVATE_RSA_KEY, SSH_BINARY
 
@@ -16,10 +16,10 @@ SSH_ARGS = (
 def ssh_do(
 	host: str,
 	things: Union[Iterable[str], str],
-	threads: Optional[List[subprocess.Popen]] = None,
+	threads: Optional[List[Popen]] = None,
 	stdin: Optional[Union[Iterable[str], str]] = None,
 	stdout: bool = False
-) -> Optional[subprocess.Popen]:
+) -> Optional[Popen]:
 	if type(things) == str:
 		cmd = things
 	else:
@@ -27,11 +27,11 @@ def ssh_do(
 	if cmd:
 		kwargs = {}
 		if stdin:
-			kwargs["stdin"] = subprocess.PIPE
+			kwargs["stdin"] = PIPE
 		if stdout:
-			kwargs["stdout"] = subprocess.PIPE
+			kwargs["stdout"] = PIPE
 		args = [*SSH_ARGS, f"root@{host}", cmd]
-		p = subprocess.Popen(args, **kwargs)
+		p = Popen(args, **kwargs)
 		if stdin:
 			if type(stdin) == str:
 				text: AnyStr = bytes(stdin, encoding="utf8")

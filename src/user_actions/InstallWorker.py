@@ -15,7 +15,7 @@ from constants import (
 from os import makedirs, walk, chmod, chown
 from os.path import exists, join, basename
 from shutil import move, rmtree, copy
-from subprocess import Popen, call
+from subprocess import Popen, call, PIPE
 from zipfile import ZipFile
 from io import BytesIO
 from urllib.request import urlopen, Request
@@ -177,11 +177,28 @@ class InstallWorker(UserAction):
 			if not exists(CRYPTPAD_CONFIG_DST):
 				copy(CRYPTPAD_CONFIG_SRC, CRYPTPAD_CONFIG_DST)
 			Popen([SERVICE_BINARY, "nginx", "stop"]).wait()
+			Popen([UFW_BINARY, "allow", "80"]).wait()
 			Popen([
 				CERTBOT_BINARY, "certonly", "--standalone",
 				"-d", f"docs.{MAIN_HOST},secure-docs.{MAIN_HOST}",
 				"-m", MAIN_EMAIL, "--agree-tos",
 			])
+			for ufw_id in reversed(
+				sorted(
+					int(i)
+					for i in findall(
+						"(?:^|\n)\\[\s*(\d+)]\s*80\s*",
+						s,
+					)
+				)
+			):
+				p = Popen(
+					[UFW_BINARY, "delete", ufw_id],
+					stdin=PIPE,
+				)
+				text: AnyStr = bytes("y", encoding="utf8")
+				p.stdin.write(text)
+				p.wait()
 			Popen([SERVICE_BINARY, "nginx", "start"]).wait()
 		if not exists(COCKROACH_BINARY):
 			print("Downloading and untarring CockroachDB...")
