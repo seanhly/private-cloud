@@ -10,11 +10,17 @@ arguments = [
 	parse_dynamic_argument(arg, action)
 	for arg in args
 ]
-FoundAction: Optional[Type[UserAction]] = None
-for T in UserAction.__subclasses__():
-	if action == T.command():
-		FoundAction = T
-		break
+def find_action(parent_class: Type[UserAction]):
+	for T in parent_class.__subclasses__():
+		if action == T.command():
+			FoundAction = T
+			return FoundAction
+		else:
+			found_action = find_action(T)
+			if found_action:
+				return found_action
+	return None
+FoundAction = find_action(UserAction)
 if FoundAction:
 	FoundAction(arguments).start()
 	exit_code = 0
