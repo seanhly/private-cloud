@@ -15,12 +15,12 @@ from constants import (
 from os import makedirs, walk, chmod, chown
 from os.path import exists, join, basename
 from shutil import move, rmtree, copy
-from subprocess import Popen, call, PIPE
+from subprocess import Popen, call, PIPE, check_output
 from zipfile import ZipFile
 from io import BytesIO
 from urllib.request import urlopen, Request
 import tarfile
-from re import sub
+from re import sub, findall
 from util.wait_then_clear import wait_then_clear
 
 
@@ -182,18 +182,18 @@ class InstallWorker(UserAction):
 				CERTBOT_BINARY, "certonly", "--standalone",
 				"-d", f"docs.{MAIN_HOST},secure-docs.{MAIN_HOST}",
 				"-m", MAIN_EMAIL, "--agree-tos",
-			])
+			]).wait()
 			for ufw_id in reversed(
 				sorted(
 					int(i)
 					for i in findall(
 						"(?:^|\n)\\[\s*(\d+)]\s*80\s*",
-						s,
+						check_output([UFW_BINARY, "status", "numbered"]).decode(),
 					)
 				)
 			):
 				p = Popen(
-					[UFW_BINARY, "delete", ufw_id],
+					[UFW_BINARY, "delete", str(ufw_id)],
 					stdin=PIPE,
 				)
 				text: AnyStr = bytes("y", encoding="utf8")
