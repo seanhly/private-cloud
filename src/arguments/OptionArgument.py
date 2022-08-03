@@ -45,7 +45,7 @@ class OptionArgument(Argument):
 						for t in {OtherArgument, IPArgument}:
 							if type(argument) == t:
 								the_action.options[self.option] = (
-									cast(OtherArgument, argument).argument
+									str(cast(t, argument))
 								)
 								current_index += 1
 								break
