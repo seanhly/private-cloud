@@ -90,6 +90,8 @@ USERADD_BINARY = "/usr/sbin/useradd"
 GROUPADD_BINARY = "/usr/sbin/groupadd"
 PIP_BINARY = "/usr/bin/pip3"
 CERTBOT_BINARY = "/usr/bin/certbot"
+KILLALL_BINARY = "/usr/bin/killall"
+UPDATE_RAPID_DNS_RECORDS_BINARY = "/root/update-rapid-dns-records"
 
 SSH_CLIENT = environ.get("SSH_CLIENT", "127.0.0.1").strip().split()[0]
 
@@ -109,6 +111,5 @@ ETC_REPLACEMENTS = {
 NAMESERVERS = {
 	"ns1.seanhealy.cyou",
 }
-UPDATE_RAPID_DNS_RECORDS_BINARY = "/root/update-rapid-dns-records"
 
 SUPPORTED_SUBDOMAINS = ("docs", "secure-docs")

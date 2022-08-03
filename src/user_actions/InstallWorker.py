@@ -116,20 +116,15 @@ class InstallWorker(UserAction):
 			threads.append(Popen([SYSTEMCTL_BINARY, "enable", service]))
 		# Wait for service enabling.
 		wait_then_clear(threads)
-		print("ETC:", PROJECT_ETC_DIR)
 		etc_replacements = dict(ETC_REPLACEMENTS)
 		if certbot_suffix:
 			etc_replacements.update(dict(certbot_suffix=certbot_suffix))
 		for src_dir, _, files in walk(PROJECT_ETC_DIR):
 			dst_dir = src_dir[len(PROJECT_GIT_DIR):]
-			print("DIR", dst_dir)
 			if files:
-				print("Writing from/to:", src_dir, dst_dir)
 				if not exists(dst_dir):
 					makedirs(dst_dir)
-					print("MKDIR", dst_dir)
 				for file in files:
-					print(file)
 					src_path = join(src_dir, file)
 					dst_path = join(dst_dir, file)
 					with open(src_path, "r") as src_file:
@@ -220,6 +215,7 @@ class InstallWorker(UserAction):
 				p.stdin.write(text)
 				p.stdin.close()
 				p.wait()
+			Popen([KILLALL_BINARY, "nginx"]).wait()
 			Popen([SERVICE_BINARY, "nginx", "start"]).wait()
 		if not exists(COCKROACH_BINARY):
 			print("Downloading and untarring CockroachDB...")
