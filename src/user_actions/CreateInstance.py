@@ -97,5 +97,5 @@ class CreateInstance(UserAction):
 			IPArgument(new_instance.main_ip)
 			for new_instance in new_instances
 		] + [
-			OptionArgument(MAIN_IP_OPTION), IPArgument(main_ip),
+			OptionArgument(f"--{MAIN_IP_OPTION}"), IPArgument(main_ip),
 		]).execute()
