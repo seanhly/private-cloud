@@ -171,13 +171,11 @@ class InstallWorker(UserAction):
 			if not exists(CRYPTPAD_CONFIG_DST):
 				copy(CRYPTPAD_CONFIG_SRC, CRYPTPAD_CONFIG_DST)
 			Popen([SERVICE_BINARY, "nginx", "stop"]).wait()
-			"""
 			Popen([
 				CERTBOT_BINARY, "--standalone",
 				"-d", f"docs.{MAIN_HOST},secure-docs.{MAIN_HOST}",
-				"-m", MAIN_EMAIL,
+				"-m", MAIN_EMAIL, "--agree-tos",
 			])
-			"""
 		if not exists(COCKROACH_BINARY):
 			print("Downloading and untarring CockroachDB...")
 			req = Request(COCKROACH_INSTALL_URL)
