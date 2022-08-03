@@ -193,12 +193,8 @@ class InstallWorker(UserAction):
 				)
 			):
 				p = Popen(
-					[UFW_BINARY, "delete", str(ufw_id)],
-					stdin=PIPE,
-				)
-				text: AnyStr = bytes("y\n", encoding="utf8")
-				p.stdin.write(text)
-				p.wait()
+					[UFW_BINARY, "delete", str(ufw_id), "--force"]
+				).wait()
 			Popen([SERVICE_BINARY, "nginx", "start"]).wait()
 		if not exists(COCKROACH_BINARY):
 			print("Downloading and untarring CockroachDB...")
