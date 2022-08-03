@@ -7,10 +7,12 @@ from constants import (
 	CRYPTPAD_CONFIG_SRC, CRYPTPAD_DIR_PATH, CRYPTPAD_GID, CRYPTPAD_SOURCE,
 	CRYPTPAD_UID, CRYPTPAD_USER, CRYPTPAD_USER_DIR, ETC_REPLACEMENTS,
 	GARAGE_BINARY, GARAGE_INSTALL_URL, GIT_BINARY, GROUPADD_BINARY, MAIN_EMAIL,
-	MAIN_HOST, NAMESERVERS, NEW_NPM_BINARY, OLD_NPM_BINARY, PIP_BINARY, PROJECT_SOURCE,
-	GROBID_DIR_PATH, GROBID_EXEC_PATH, GROBID_SOURCE, PACMAN_BINARY,
-	PROJECT_ETC_DIR, PROJECT_GIT_DIR, SERVICE_BINARY, SSH_CLIENT, SUDO_BINARY,
-	SYSTEMCTL_BINARY, TMP_DIR, UFW_BINARY, UPDATE_RAPID_DNS_RECORDS_BINARY, USERADD_BINARY, WORKING_DIR,
+	MAIN_HOST, NAMESERVERS, NEW_NPM_BINARY, OLD_NPM_BINARY, PIP_BINARY,
+	PROJECT_SOURCE, GROBID_DIR_PATH, GROBID_EXEC_PATH, GROBID_SOURCE,
+	PACMAN_BINARY, PROJECT_ETC_DIR, PROJECT_GIT_DIR, SERVICE_BINARY, SSH_CLIENT,
+	SUDO_BINARY, SYSTEMCTL_BINARY, TMP_DIR, UFW_BINARY,
+	UPDATE_RAPID_DNS_RECORDS_BINARY, USERADD_BINARY, WORKING_DIR,
+	SUPPORTED_SUBDOMAINS
 )
 from os import makedirs, walk, chmod, chown
 from os.path import exists, join, basename
@@ -22,6 +24,8 @@ from urllib.request import urlopen, Request
 import tarfile
 from re import sub, findall
 from util.wait_then_clear import wait_then_clear
+from random import choices
+from user_actions.CreateInstanceOnIPs import CERTBOT_SUFFIX_OPTION
 
 
 class InstallWorker(UserAction):
@@ -34,10 +38,10 @@ class InstallWorker(UserAction):
 		return "Install worker node software."
 
 	def recognised_options(self):
-		return set()
+		return {CERTBOT_SUFFIX_OPTION}
 
 	def arg_options(self):
-		return set()
+		return {CERTBOT_SUFFIX_OPTION}
 
 	def obligatory_option_groups(self):
 		return []
@@ -46,6 +50,10 @@ class InstallWorker(UserAction):
 		return []
 
 	def execute(self):
+		if self.options and CERTBOT_SUFFIX_OPTION in self.options:
+			certbot_suffix = self.options[CERTBOT_SUFFIX_OPTION]
+		else:
+			certbot_suffix = None
 		threads: List[Popen] = [
 			Popen([UFW_BINARY, "allow", "from", SSH_CLIENT])
 		]
@@ -178,10 +186,19 @@ class InstallWorker(UserAction):
 				copy(CRYPTPAD_CONFIG_SRC, CRYPTPAD_CONFIG_DST)
 			Popen([SERVICE_BINARY, "nginx", "stop"]).wait()
 			Popen([UFW_BINARY, "allow", "80"]).wait()
+			supported_subdomains = list(SUPPORTED_SUBDOMAINS)
+			if certbot_suffix:
+				supported_subdomains.append(f"certbot-{certbot_suffix}")
+			comma_separated_domains = ",".join(
+				f"{subdomain}.{MAIN_HOST}"
+				for subdomain in supported_subdomains
+			)
 			Popen([
 				CERTBOT_BINARY, "certonly", "--standalone",
-				"-d", f"docs.{MAIN_HOST},secure-docs.{MAIN_HOST}",
-				"-m", MAIN_EMAIL, "--agree-tos",
+				"-d",
+				comma_separated_domains,
+				"-m", MAIN_EMAIL,
+				"--agree-tos",
 			]).wait()
 			for ufw_id in reversed(
 				sorted(

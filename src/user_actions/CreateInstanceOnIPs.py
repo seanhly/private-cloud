@@ -13,6 +13,7 @@ from util.redis_utils import extend_network, set_region_and_public_ipv4
 
 
 MAIN_IP_OPTION = "main-ip"
+CERTBOT_SUFFIX_OPTION = "certbot-suffix"
 
 
 class CreateInstanceOnIPs(UserAction):
@@ -25,10 +26,10 @@ class CreateInstanceOnIPs(UserAction):
 		return "Set up an instance on a pre-created IP."
 
 	def recognised_options(self):
-		return {MAIN_IP_OPTION}
+		return {MAIN_IP_OPTION, CERTBOT_SUFFIX_OPTION}
 
 	def arg_options(self):
-		return {MAIN_IP_OPTION}
+		return {MAIN_IP_OPTION, CERTBOT_SUFFIX_OPTION}
 
 	def obligatory_option_groups(self):
 		return []
@@ -41,6 +42,10 @@ class CreateInstanceOnIPs(UserAction):
 			main_ip = self.options[MAIN_IP_OPTION]
 		else:
 			main_ip = None
+		if self.options and CERTBOT_SUFFIX_OPTION in self.options:
+			certbot_suffix = self.options[CERTBOT_SUFFIX_OPTION]
+		else:
+			certbot_suffix = None
 		# New IPs are fed in as arguments.
 		# Details for these IPs are then pulled from the Pool cache.
 		all_instances = Pool.load(Vultr).pool
@@ -59,7 +64,14 @@ class CreateInstanceOnIPs(UserAction):
 		threads: List[Popen] = []
 		# Bootstrap a system onto each worker.
 		for new_ip in new_instance_ips:
-			threads.append(ssh_do(new_ip, BOOTSTRAP_SCRIPT))
+			kwargs = (
+				dict(stdin=certbot_suffix)
+				if certbot_suffix else {}
+			)
+			threads.append(ssh_do(
+				new_ip,
+				BOOTSTRAP_SCRIPT,
+			), **kwargs)
 		wait_then_clear(threads)
 		# New workers can now reach pre-existing workers.
 		# <---|

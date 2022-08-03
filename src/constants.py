@@ -110,3 +110,5 @@ NAMESERVERS = {
 	"ns1.seanhealy.cyou",
 }
 UPDATE_RAPID_DNS_RECORDS_BINARY = "/root/update-rapid-dns-records"
+
+SUPPORTED_SUBDOMAINS = ("docs", "secure-docs")

@@ -1,7 +1,9 @@
 from subprocess import Popen
 from arguments.IPArgument import IPArgument
 from constants import MAIN_HOST, NAMESERVERS, UPDATE_RAPID_DNS_RECORDS_BINARY
-from user_actions.CreateInstanceOnIPs import MAIN_IP_OPTION, CreateInstanceOnIPs
+from user_actions.CreateInstanceOnIPs import (
+	MAIN_IP_OPTION, CreateInstanceOnIPs, CERTBOT_SUFFIX_OPTION
+)
 from user_actions.UserAction import UserAction
 from cloud.server.Instance import Instance
 from cloud.server.Pool import Pool
@@ -13,6 +15,7 @@ from random import choice
 from util.ssh_do import ssh_do
 from util.wait_then_clear import wait_then_clear
 from arguments.OptionArgument import OptionArgument
+from arguments.OtherArgument import OtherArgument
 
 
 class CreateInstance(UserAction):
@@ -73,8 +76,20 @@ class CreateInstance(UserAction):
 		else:
 			main_ip = choice(tuple(new_instance_ips))
 			threads: List[Popen] = []
+			from random import choices
+			ALPHA_NUMERICAL_LOWERCASE_CHARACTERS = "abcdefghijklmnopqrstuvwxyz0123456789"
+			certbox_suffix = "".join(
+				choices(
+					ALPHA_NUMERICAL_LOWERCASE_CHARACTERS, k=3,
+				)
+			)
 			for ns in NAMESERVERS:
-				cmd = f"{UPDATE_RAPID_DNS_RECORDS_BINARY} {MAIN_HOST} {main_ip}"
+				cmd = " ".join([
+					UPDATE_RAPID_DNS_RECORDS_BINARY,
+					MAIN_HOST,
+					main_ip,
+					certbox_suffix,
+				])
 				threads.append(ssh_do(ns, cmd))
 			wait_then_clear(threads)
 		start = datetime.now().timestamp()
@@ -93,9 +108,14 @@ class CreateInstance(UserAction):
 		print()
 		current_pool.add_all(new_instances)
 		current_pool.dump()
-		CreateInstanceOnIPs([
-			IPArgument(new_instance.main_ip)
-			for new_instance in new_instances
-		] + [
-			OptionArgument(f"--{MAIN_IP_OPTION}"), IPArgument(main_ip),
-		]).execute()
+		CreateInstanceOnIPs(
+			[
+				IPArgument(new_instance.main_ip)
+				for new_instance in new_instances
+			] + [
+				OptionArgument(f"--{MAIN_IP_OPTION}"), IPArgument(main_ip),
+			] + (
+				[OptionArgument(f"--{CERTBOT_SUFFIX_OPTION}"), OtherArgument(certbox_suffix)]
+				if certbox_suffix else []
+			)
+		).execute()
