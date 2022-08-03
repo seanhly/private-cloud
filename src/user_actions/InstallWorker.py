@@ -108,8 +108,10 @@ class InstallWorker(UserAction):
 			threads.append(Popen([SYSTEMCTL_BINARY, "enable", service]))
 		# Wait for service enabling.
 		wait_then_clear(threads)
+		print("ETC:", PROJECT_ETC_DIR)
 		for src_dir, _, files in walk(PROJECT_ETC_DIR):
-			dst_dir = join("/", src_dir)
+			dst_dir = src_dir[len(PROJECT_GIT_DIR):]
+			print("DIR", dst_dir)
 			if files:
 				print("Writing from/to:", src_dir, dst_dir)
 				if not exists(dst_dir):
