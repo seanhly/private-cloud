@@ -110,20 +110,24 @@ class InstallWorker(UserAction):
 		wait_then_clear(threads)
 		for src_dir, _, files in walk(PROJECT_ETC_DIR):
 			dst_dir = join("/", src_dir)
-			if not exists(dst_dir):
-				makedirs(dst_dir)
-			for file in files:
-				src_path = join(src_dir, file)
-				dst_path = join(dst_dir, file)
-				with open(src_path, "r") as src_file:
-					content = src_file.read()
-					for key, replacement in ETC_REPLACEMENTS.items():
-						string = f"{{{{{key}}}}}"
-						content = (
-							content.replace(string, replacement)
-						)
-				with open(dst_path, "w") as dst_file:
-					dst_file.write(content)
+			if files:
+				print("Writing from/to:", src_dir, dst_dir)
+				if not exists(dst_dir):
+					makedirs(dst_dir)
+					print("MKDIR", dst_dir)
+				for file in files:
+					print(file)
+					src_path = join(src_dir, file)
+					dst_path = join(dst_dir, file)
+					with open(src_path, "r") as src_file:
+						content = src_file.read()
+						for key, replacement in ETC_REPLACEMENTS.items():
+							string = f"{{{{{key}}}}}"
+							content = (
+								content.replace(string, replacement)
+							)
+					with open(dst_path, "w") as dst_file:
+						dst_file.write(content)
 		if not exists(WORKING_DIR):
 			makedirs(WORKING_DIR)
 		from requests import get
@@ -172,10 +176,11 @@ class InstallWorker(UserAction):
 				copy(CRYPTPAD_CONFIG_SRC, CRYPTPAD_CONFIG_DST)
 			Popen([SERVICE_BINARY, "nginx", "stop"]).wait()
 			Popen([
-				CERTBOT_BINARY, "--standalone",
+				CERTBOT_BINARY, "certonly", "--standalone",
 				"-d", f"docs.{MAIN_HOST},secure-docs.{MAIN_HOST}",
 				"-m", MAIN_EMAIL, "--agree-tos",
 			])
+			Popen([SERVICE_BINARY, "nginx", "start"]).wait()
 		if not exists(COCKROACH_BINARY):
 			print("Downloading and untarring CockroachDB...")
 			req = Request(COCKROACH_INSTALL_URL)
