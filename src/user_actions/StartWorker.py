@@ -2,10 +2,10 @@ from typing import Dict, List, Optional, Tuple
 from user_actions.ConnectGarageWorkers import ConnectGarageWorkers
 from user_actions.UserAction import UserAction
 from constants import (
-	COCKROACH_BINARY, COCKROACH_BINARY_NAME, COCKROACH_PORT, COCKROACH_WEB_PORT, CRYPTPAD_DIR_PATH, CRYPTPAD_SOURCE, CRYPTPAD_USER,
-	GARAGE_BINARY, GARAGE_BINARY_NAME, GROBID_DIR_PATH,
-	GROBID_EXEC_PATH, SUDO_BINARY,
-	TMUX_BINARY
+	COCKROACH_BINARY, COCKROACH_BINARY_NAME, COCKROACH_PORT, COCKROACH_WEB_PORT,
+	CRYPTPAD_DIR_PATH, CRYPTPAD_SOURCE, CRYPTPAD_USER, GARAGE_BINARY,
+	GARAGE_BINARY_NAME, GROBID_DIR_PATH, GROBID_EXEC_PATH, SUDO_BINARY,
+	TMUX_BINARY,
 )
 from subprocess import Popen, call
 from util.redis_utils import get_public_ipv4
@@ -35,6 +35,9 @@ class StartWorker(UserAction):
 
 	def blocking_options(self):
 		return []
+	
+	def special_services(self) -> Dict[str, Tuple[str, str, str]]:
+		return {}
 	
 	def execute(self) -> None:
 		my_ip = get_public_ipv4()
@@ -98,11 +101,7 @@ class StartWorker(UserAction):
 				None,
 				cockroach_cmd
 			),
-			basename(CRYPTPAD_SOURCE): (
-				CRYPTPAD_DIR_PATH,
-				CRYPTPAD_USER,
-				"node server.js"
-			)
+			**self.special_services()
 		}
 		threads: List[Popen] = []
 		print("Running services in TMUX...")

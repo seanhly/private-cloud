@@ -1,6 +1,11 @@
 from os.path import join, exists, basename
 from os import environ, makedirs
 
+
+MAIN_HOST = "seanhealy.ie"
+ADMIN_USERNAME = "sean"
+MAIN_EMAIL = f"{ADMIN_USERNAME}@{MAIN_HOST}"
+
 GITHUB_REPO = "seanhly/private-cloud"
 GROBID_REPO = "kermitt2/grobid"
 CRYPTPAD_REPO = "xwiki-labs/cryptpad"
@@ -84,6 +89,7 @@ BOWER_BINARY = "/usr/local/bin/bower"
 USERADD_BINARY = "/usr/sbin/useradd"
 GROUPADD_BINARY = "/usr/sbin/groupadd"
 PIP_BINARY = "/usr/bin/pip3"
+CERTBOT_BINARY = "/usr/bin/certbot"
 
 SSH_CLIENT = environ.get("SSH_CLIENT", "127.0.0.1").strip().split()[0]
 
@@ -95,3 +101,12 @@ CRYPTPAD_CONFIG_SRC = join(PROJECT_GIT_DIR, "config/cryptpad.js")
 CRYPTPAD_CONFIG_DST = join(CRYPTPAD_DIR_PATH, "config/config.js")
 CRYPTPAD_NGINX_CONFIG_SRC = join(PROJECT_GIT_DIR, "cryptpad.nginx.conf")
 CRYPTPAD_NGINX_CONFIG_DST = join("/etc")
+
+ETC_REPLACEMENTS = {
+	"main_host": MAIN_HOST,
+}
+
+NAMESERVERS = {
+	"ns1.seanhealy.cyou",
+}
+UPDATE_RAPID_DNS_RECORDS_BINARY = "/root/update-rapid-dns-records"

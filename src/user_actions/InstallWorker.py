@@ -2,14 +2,15 @@ from typing import List
 from user_actions.UserAction import UserAction
 from time import sleep
 from constants import (
-	APT_GET_BINARY, BOWER_BINARY, COCKROACH_BINARY, COCKROACH_BINARY_NAME,
-	COCKROACH_INSTALL_URL, CRYPTPAD_CONFIG_DST, CRYPTPAD_CONFIG_SRC,
-	CRYPTPAD_DIR_PATH, CRYPTPAD_GID, CRYPTPAD_SOURCE, CRYPTPAD_UID, CRYPTPAD_USER,
-	CRYPTPAD_USER_DIR, GARAGE_BINARY, GARAGE_INSTALL_URL, GIT_BINARY, GROUPADD_BINARY,
-	NEW_NPM_BINARY, OLD_NPM_BINARY, PIP_BINARY, PROJECT_SOURCE, GROBID_DIR_PATH,
-	GROBID_EXEC_PATH, GROBID_SOURCE, PACMAN_BINARY, PROJECT_ETC_DIR,
-	PROJECT_GIT_DIR, SERVICE_BINARY, SSH_CLIENT, SUDO_BINARY, SYSTEMCTL_BINARY,
-	TMP_DIR, UFW_BINARY, USERADD_BINARY, WORKING_DIR,
+	APT_GET_BINARY, BOWER_BINARY, CERTBOT_BINARY, COCKROACH_BINARY,
+	COCKROACH_BINARY_NAME, COCKROACH_INSTALL_URL, CRYPTPAD_CONFIG_DST,
+	CRYPTPAD_CONFIG_SRC, CRYPTPAD_DIR_PATH, CRYPTPAD_GID, CRYPTPAD_SOURCE,
+	CRYPTPAD_UID, CRYPTPAD_USER, CRYPTPAD_USER_DIR, ETC_REPLACEMENTS,
+	GARAGE_BINARY, GARAGE_INSTALL_URL, GIT_BINARY, GROUPADD_BINARY, MAIN_EMAIL,
+	MAIN_HOST, NAMESERVERS, NEW_NPM_BINARY, OLD_NPM_BINARY, PIP_BINARY, PROJECT_SOURCE,
+	GROBID_DIR_PATH, GROBID_EXEC_PATH, GROBID_SOURCE, PACMAN_BINARY,
+	PROJECT_ETC_DIR, PROJECT_GIT_DIR, SERVICE_BINARY, SSH_CLIENT, SUDO_BINARY,
+	SYSTEMCTL_BINARY, TMP_DIR, UFW_BINARY, UPDATE_RAPID_DNS_RECORDS_BINARY, USERADD_BINARY, WORKING_DIR,
 )
 from os import makedirs, walk, chmod, chown
 from os.path import exists, join, basename
@@ -105,6 +106,8 @@ class InstallWorker(UserAction):
 		services = ["nginx", "redis-server", "transmission-daemon"]
 		for service in services:
 			threads.append(Popen([SYSTEMCTL_BINARY, "enable", service]))
+		# Wait for service enabling.
+		wait_then_clear(threads)
 		for src_dir, _, files in walk(PROJECT_ETC_DIR):
 			dst_dir = join("/", src_dir)
 			if not exists(dst_dir):
@@ -114,21 +117,13 @@ class InstallWorker(UserAction):
 				dst_path = join(dst_dir, file)
 				with open(src_path, "r") as src_file:
 					content = src_file.read()
-					for key, replacement in {
-						"main_host": "seanhealy.ie",
-					}.items():
+					for key, replacement in ETC_REPLACEMENTS.items():
 						string = f"{{{{{key}}}}}"
 						content = (
 							content.replace(string, replacement)
 						)
 				with open(dst_path, "w") as dst_file:
 					dst_file.write(content)
-		# Wait for config writes and service enabling.
-		wait_then_clear(threads)
-		for service in services:
-			threads.append(Popen([SERVICE_BINARY, service, "restart"]))
-		# Wait for service restarts.
-		wait_then_clear(threads)
 		if not exists(WORKING_DIR):
 			makedirs(WORKING_DIR)
 		from requests import get
@@ -175,6 +170,14 @@ class InstallWorker(UserAction):
 			).wait()
 			if not exists(CRYPTPAD_CONFIG_DST):
 				copy(CRYPTPAD_CONFIG_SRC, CRYPTPAD_CONFIG_DST)
+			Popen([SERVICE_BINARY, "nginx", "stop"]).wait()
+			"""
+			Popen([
+				CERTBOT_BINARY, "--standalone",
+				"-d", f"docs.{MAIN_HOST},secure-docs.{MAIN_HOST}",
+				"-m", MAIN_EMAIL,
+			])
+			"""
 		if not exists(COCKROACH_BINARY):
 			print("Downloading and untarring CockroachDB...")
 			req = Request(COCKROACH_INSTALL_URL)
@@ -203,3 +206,7 @@ class InstallWorker(UserAction):
 				f.write(get(GARAGE_INSTALL_URL).content)
 			chmod(GARAGE_BINARY, 0o700)
 		rmtree(PROJECT_GIT_DIR)
+		for service in services:
+			threads.append(Popen([SERVICE_BINARY, service, "restart"]))
+		# Wait for service starts.
+		wait_then_clear(threads)

@@ -1,4 +1,5 @@
 from subprocess import Popen
+from user_actions.StartMainWorker import StartMainWorker
 from user_actions.StartWorker import StartWorker
 from user_actions.UserAction import UserAction
 from cloud.server.Pool import Pool
@@ -11,6 +12,9 @@ from util.wait_then_clear import wait_then_clear
 from util.redis_utils import extend_network, set_region_and_public_ipv4
 
 
+MAIN_IP_OPTION = "main-ip"
+
+
 class CreateInstanceOnIPs(UserAction):
 	@classmethod
 	def command(cls) -> str:
@@ -21,10 +25,10 @@ class CreateInstanceOnIPs(UserAction):
 		return "Set up an instance on a pre-created IP."
 
 	def recognised_options(self):
-		return set()
+		return {MAIN_IP_OPTION}
 
 	def arg_options(self):
-		return set()
+		return {MAIN_IP_OPTION}
 
 	def obligatory_option_groups(self):
 		return []
@@ -33,6 +37,10 @@ class CreateInstanceOnIPs(UserAction):
 		return []
 	
 	def execute(self) -> None:
+		if self.options and MAIN_IP_OPTION in self.options:
+			main_ip = self.options[MAIN_IP_OPTION]
+		else:
+			main_ip = None
 		# New IPs are fed in as arguments.
 		# Details for these IPs are then pulled from the Pool cache.
 		all_instances = Pool.load(Vultr).pool
@@ -47,7 +55,6 @@ class CreateInstanceOnIPs(UserAction):
 			for instance in all_instances
 			if instance.main_ip not in new_instance_ips
 		]
-		print("New:", str(new_instance_ips))
 		previous_instance_ips = {i.main_ip for i in previous_instances}
 		threads: List[Popen] = []
 		# Bootstrap a system onto each worker.
@@ -98,5 +105,8 @@ class CreateInstanceOnIPs(UserAction):
 		wait_then_clear(threads)
 		# Run each worker.
 		for new_ip in new_instance_ips:
-			threads.append(StartWorker.run_on_host(new_ip))
+			if new_ip == main_ip:
+				threads.append(StartMainWorker.run_on_host(new_ip))
+			else:
+				threads.append(StartWorker.run_on_host(new_ip))
 		wait_then_clear(threads)

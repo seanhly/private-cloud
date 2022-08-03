@@ -2,6 +2,8 @@ from arguments.Argument import Argument
 import re
 from typing import cast
 
+from arguments.IPArgument import IPArgument
+
 
 class OptionArgument(Argument):
 	option: str
@@ -22,10 +24,8 @@ class OptionArgument(Argument):
 				the_action.indexed_blocking_options()[self.option]
 			)
 		if self.option not in the_action.recognised_options():
-			print(f"Unrecognised: {self.option}")
 			the_action.unrecognised_options.add(self.option)
 		else:
-			print(f"Recognised: {self.option}")
 			the_action.options[self.option] = None
 			if self.option in the_action.indexed_obligatory_option_groups():
 				for o in the_action.indexed_obligatory_option_groups()[self.option]:
@@ -41,12 +41,14 @@ class OptionArgument(Argument):
 					from arguments.OtherArgument import OtherArgument
 					if type(argument) == type(self):
 						the_action.missing_argument_for_options.append(self.option)
-					elif type(argument) == OtherArgument:
-						the_argument: OtherArgument = (
-							cast(OtherArgument, argument)
-						)
-						current_index += 1
-						the_action.options[self.option] = the_argument.argument
+					else:
+						for t in {OtherArgument, IPArgument}:
+							if type(argument) == t:
+								the_action.options[self.option] = (
+									cast(OtherArgument, argument).argument
+								)
+								current_index += 1
+								break
 
 		return current_index
 			
