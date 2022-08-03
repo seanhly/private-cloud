@@ -117,6 +117,9 @@ class InstallWorker(UserAction):
 		# Wait for service enabling.
 		wait_then_clear(threads)
 		print("ETC:", PROJECT_ETC_DIR)
+		etc_replacements = dict(ETC_REPLACEMENTS)
+		if certbot_suffix:
+			etc_replacements.update(dict(certbot_suffix=certbot_suffix))
 		for src_dir, _, files in walk(PROJECT_ETC_DIR):
 			dst_dir = src_dir[len(PROJECT_GIT_DIR):]
 			print("DIR", dst_dir)
@@ -131,7 +134,7 @@ class InstallWorker(UserAction):
 					dst_path = join(dst_dir, file)
 					with open(src_path, "r") as src_file:
 						content = src_file.read()
-						for key, replacement in ETC_REPLACEMENTS.items():
+						for key, replacement in etc_replacements.items():
 							string = f"{{{{{key}}}}}"
 							content = (
 								content.replace(string, replacement)
@@ -194,11 +197,11 @@ class InstallWorker(UserAction):
 				for subdomain in supported_subdomains
 			)
 			Popen([
-				CERTBOT_BINARY, "certonly", "--standalone",
-				"-d",
-				comma_separated_domains,
+				CERTBOT_BINARY, "--nginx",
 				"-m", MAIN_EMAIL,
 				"--agree-tos",
+				"-d",
+				comma_separated_domains,
 			]).wait()
 			for ufw_id in reversed(
 				sorted(
