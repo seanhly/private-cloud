@@ -49,7 +49,7 @@ EXECUTABLE = f"/usr/bin/{PROJECT_LABEL}"
 
 REDIS_WORKER_NETWORK_DB = 0
 REDIS_WORK_QUEUES_DB = 1
-GIT_BINARY = "/usr/bin/git"
+GIT = "/usr/bin/git"
 INSTALL_SCRIPT = "install.sh"
 INSTALL_SCRIPT_URL = f"{RAW_GITHUB_HOST}{GITHUB_REPO}/master/{INSTALL_SCRIPT}"
 BOOTSTRAP_SCRIPT = f"sh -c \"$(wget {INSTALL_SCRIPT_URL} -O -)\""
@@ -58,7 +58,7 @@ COCKROACH_INSTALL_URL = (
 	"https://binaries.cockroachdb.com/cockroach-v22.1.4.linux-amd64.tgz"
 )
 COCKROACH_BINARY_NAME = "cockroach"
-COCKROACH_BINARY = join("/usr/local/bin", COCKROACH_BINARY_NAME)
+COCKROACH = join("/usr/local/bin", COCKROACH_BINARY_NAME)
 COCKROACH_PORT = 26257
 COCKROACH_WEB_PORT = 8080
 GARAGE_INSTALL_URL = (
@@ -72,28 +72,26 @@ GARAGE_S3_PORT = 3900
 TMP_DIR = "/tmp"
 
 TMUX_BINARY = "/usr/bin/tmux"
-UFW_BINARY = "/usr/sbin/ufw"
+UFW = "/usr/sbin/ufw"
 RSYNC_BINARY = "/usr/bin/rsync"
-APT_GET_BINARY = "/usr/bin/apt-get"
-PACMAN_BINARY = "/usr/bin/pacman"
-SYSTEMCTL_BINARY = "/usr/bin/systemctl"
-SERVICE_BINARY = "/usr/sbin/service"
+APT_GET = "/usr/bin/apt-get"
+PACMAN = "/usr/bin/pacman"
+SYSTEMCTL = "/usr/bin/systemctl"
+SERVICE = "/usr/sbin/service"
 REDIS_CLI_BINARY = "/usr/bin/redis-cli"
 SSH_BINARY = "/usr/bin/ssh"
 SSH_KEYGEN_BINARY = "/usr/bin/ssh-keygen"
-SUDO_BINARY = "/usr/bin/sudo"
-OLD_NPM_BINARY = "/usr/bin/npm"
-NEW_NPM_BINARY = "/usr/local/bin/npm"
+SUDO = "/usr/bin/sudo"
+OLD_NPM = "/usr/bin/npm"
+NEW_NPM = "/usr/local/bin/npm"
 NODE_BINARY = "/usr/local/bin/node"
-BOWER_BINARY = "/usr/local/bin/bower"
-USERADD_BINARY = "/usr/sbin/useradd"
-GROUPADD_BINARY = "/usr/sbin/groupadd"
-PIP_BINARY = "/usr/bin/pip3"
+BOWER = "/usr/local/bin/bower"
+USERADD = "/usr/sbin/useradd"
+GROUPADD = "/usr/sbin/groupadd"
+PIP = "/usr/bin/pip3"
 CERTBOT_BINARY = "/usr/bin/certbot"
-KILLALL_BINARY = "/usr/bin/killall"
+KILLALL = "/usr/bin/killall"
 UPDATE_RAPID_DNS_RECORDS_BINARY = "/root/update-rapid-dns-records"
-
-SSH_CLIENT = environ.get("SSH_CLIENT", "127.0.0.1").strip().split()[0]
 
 PROJECT_GIT_DIR = "/private-cloud"
 PROJECT_ETC_DIR = join(PROJECT_GIT_DIR, "etc")
@@ -136,7 +134,9 @@ PACMAN_DEPENDENCIES = [
 	PHP_PLUGIN,
 	#  "maven",
 ]
-REQUIRED_SYSTEMD_SERVICES = [
+PIP_PACKAGES = ["minio", "grobid-tei-xml"]
+NPM_PACKAGES = ["bower", "node", "npm"]
+NATIVE_SERVICES = [
 	"nginx",
 	"redis-server",
 	"transmission-daemon",
@@ -149,3 +149,11 @@ ETC_REPLACEMENTS = {
 	"website_dir": join("/srv", f"www.{MAIN_HOST}"),
 	"php_plugin": PHP_PLUGIN,
 }
+ALPHA_NUMERICAL_LOWERCASE_CHARACTERS = "abcdefghijklmnopqrstuvwxyz0123456789"
+
+# Add git repos for importing
+IMPORT_GIT_REPOS = [
+	"https://github.com/seanhly/private-cloud"
+	"https://github.com/seanhly/phd"
+	"https://github.com/seanhly/docmuch"
+]

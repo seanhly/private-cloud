@@ -10,13 +10,14 @@ from cloud.server.Pool import Pool
 from cloud.vendors.Vultr import Vultr
 import time
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 from random import choice
 from util.ssh_do import ssh_do
 from util.wait_then_clear import wait_then_clear
 from arguments.OptionArgument import OptionArgument
 from arguments.OtherArgument import OtherArgument
 from sys import exit
+from constants import ALPHA_NUMERICAL_LOWERCASE_CHARACTERS
 
 
 class CreateInstance(UserAction):
@@ -51,9 +52,8 @@ class CreateInstance(UserAction):
 		start = datetime.now().timestamp()
 		incomplete_server = True
 		while incomplete_server:
-			print(
-				f"\rAwaiting activation [{int(datetime.now().timestamp() - start)}s] ",
-				end="")
+			t = int(datetime.now().timestamp() - start)
+			print(f"\rAwaiting activation [{t} s] ", end="")
 			incomplete_server = False
 			i = 0
 			while i < len(new_instances) and not incomplete_server:
@@ -74,14 +74,15 @@ class CreateInstance(UserAction):
 			time.sleep(0.3)
 		print()
 		new_instance_ips = {i.main_ip for i in new_instances}
+		certbot_suffix: Optional[str]
 		if current_pool.pool:
 			main_ip = None
+			certbot_suffix = None
 		else:
 			main_ip = choice(tuple(new_instance_ips))
 			threads: List[Popen] = []
 			from random import choices
-			ALPHA_NUMERICAL_LOWERCASE_CHARACTERS = "abcdefghijklmnopqrstuvwxyz0123456789"
-			certbox_suffix = "".join(
+			certbot_suffix = "".join(
 				choices(
 					ALPHA_NUMERICAL_LOWERCASE_CHARACTERS, k=3,
 				)
@@ -91,16 +92,15 @@ class CreateInstance(UserAction):
 					UPDATE_RAPID_DNS_RECORDS_BINARY,
 					MAIN_HOST,
 					main_ip,
-					certbox_suffix,
+					certbot_suffix,
 				])
 				threads.append(ssh_do(ns, cmd))
 			wait_then_clear(threads)
 		start = datetime.now().timestamp()
 		ssh_closed = True
 		while ssh_closed:
-			print(
-				f"\rAwaiting SSH access [{int(datetime.now().timestamp() - start)}s] ",
-				end="")
+			t = int(datetime.now().timestamp() - start)
+			print(f"\rAwaiting SSH access [{t} s] ", end="")
 			ssh_closed = False
 			from util.are_ports_online import are_ports_online
 			for new_ip in new_instance_ips:
@@ -118,7 +118,10 @@ class CreateInstance(UserAction):
 			] + [
 				OptionArgument(f"--{MAIN_IP_OPTION}"), IPArgument(main_ip),
 			] + (
-				[OptionArgument(f"--{CERTBOT_SUFFIX_OPTION}"), OtherArgument(certbox_suffix)]
-				if certbox_suffix else []
+				[
+					OptionArgument(f"--{CERTBOT_SUFFIX_OPTION}"),
+					OtherArgument(certbot_suffix),
+				]
+				if certbot_suffix else []
 			)
 		).execute()

@@ -2,9 +2,9 @@ from typing import Dict, List, Optional, Tuple
 from user_actions.ConnectGarageWorkers import ConnectGarageWorkers
 from user_actions.UserAction import UserAction
 from constants import (
-	COCKROACH_BINARY, COCKROACH_BINARY_NAME, COCKROACH_PORT, COCKROACH_WEB_PORT,
+	COCKROACH, COCKROACH_BINARY_NAME, COCKROACH_PORT, COCKROACH_WEB_PORT,
 	CRYPTPAD_DIR_PATH, CRYPTPAD_SOURCE, CRYPTPAD_USER, GARAGE_BINARY,
-	GARAGE_BINARY_NAME, GROBID_DIR_PATH, GROBID_EXEC_PATH, SUDO_BINARY,
+	GARAGE_BINARY_NAME, GROBID_DIR_PATH, GROBID_EXEC_PATH, SUDO,
 	TMUX_BINARY,
 )
 from subprocess import Popen, call
@@ -51,7 +51,7 @@ class StartWorker(UserAction):
 		# More nodes can join later.
 		if not the_network:
 			cockroach_cmd = (
-				f"{COCKROACH_BINARY} start-single-node {common_cockroach_args}"
+				f"{COCKROACH} start-single-node {common_cockroach_args}"
 			)
 		else:
 			cockroach_active_on_ips: List[str] = []
@@ -63,13 +63,13 @@ class StartWorker(UserAction):
 			if len(cockroach_active_on_ips) > 0:
 				join_ips = ','.join(cockroach_active_on_ips)
 				cockroach_cmd = (
-					f"{COCKROACH_BINARY} start {common_cockroach_args} --join={join_ips}"
+					f"{COCKROACH} start {common_cockroach_args} --join={join_ips}"
 				)
 			else:
 				lowest_ip = min(min(the_network), my_ip)
 				if lowest_ip == my_ip:
 					cockroach_cmd = (
-						f"{COCKROACH_BINARY} start-single-node {common_cockroach_args}"
+						f"{COCKROACH} start-single-node {common_cockroach_args}"
 					)
 				else:
 					while not cockroach_active_on_ips:
@@ -83,7 +83,7 @@ class StartWorker(UserAction):
 								break
 					join_ips = ','.join(cockroach_active_on_ips)
 					cockroach_cmd = (
-						f"{COCKROACH_BINARY} start {common_cockroach_args} --join={join_ips}"
+						f"{COCKROACH} start {common_cockroach_args} --join={join_ips}"
 					)
 		services: Dict[str, Tuple[Optional[str], str]] = {
 			"grobid": (
@@ -106,7 +106,7 @@ class StartWorker(UserAction):
 		threads: List[Popen] = []
 		print("Running services in TMUX...")
 		for name, (cwd, user, cmd) in services.items():
-			sudo_prefix = [SUDO_BINARY, "-u", user] if user else []
+			sudo_prefix = [SUDO, "-u", user] if user else []
 			if call([*sudo_prefix, TMUX_BINARY, "has-session", "-t", name]) != 0:
 				threads.append(
 					Popen(

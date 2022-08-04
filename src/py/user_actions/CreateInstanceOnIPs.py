@@ -4,7 +4,7 @@ from user_actions.StartWorker import StartWorker
 from user_actions.UserAction import UserAction
 from cloud.server.Pool import Pool
 from cloud.vendors.Vultr import Vultr
-from constants import UFW_BINARY
+from constants import UFW
 from typing import List
 from constants import BOOTSTRAP_SCRIPT
 from util.ssh_do import ssh_do
@@ -64,37 +64,28 @@ class CreateInstanceOnIPs(UserAction):
 		threads: List[Popen] = []
 		# Bootstrap a system onto each worker.
 		for new_ip in new_instance_ips:
-			kwargs = (
-				dict(stdin=certbot_suffix)
-				if certbot_suffix else {}
-			)
-			threads.append(
-				ssh_do(
-					new_ip,
-					BOOTSTRAP_SCRIPT,
-					**kwargs
-				)
-			)
+			kwargs = dict(stdin=certbot_suffix) if certbot_suffix else {}
+			threads.append(ssh_do(new_ip, BOOTSTRAP_SCRIPT, **kwargs))
 		wait_then_clear(threads)
 		# New workers can now reach pre-existing workers.
 		# <---|
 		for previous_ip in previous_instance_ips:
 			ssh_do(previous_ip, (
-				f"{UFW_BINARY} allow from {new_ip}"
+				f"{UFW} allow from {new_ip}"
 				for new_ip in new_instance_ips
 			), threads)
 		# New workers can now reach each other.
 		# | <-->
 		for new_ip in new_instance_ips:
 			ssh_do(new_ip, (
-				f"{UFW_BINARY} allow from {new_ip}"
+				f"{UFW} allow from {new_ip}"
 				for new_ip in new_instance_ips
 			), threads)
 		# Pre-existing workers can now reach new workers.
 		# |--->
 		for new_ip in new_instance_ips:
 			ssh_do(new_ip, (
-				f"{UFW_BINARY} allow from {previous_ip}"
+				f"{UFW} allow from {previous_ip}"
 				for previous_ip in previous_instance_ips
 			), threads)
 		for previous_ip in previous_instance_ips:
