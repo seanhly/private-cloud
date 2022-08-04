@@ -13,6 +13,7 @@ from constants import (
 	SSH_CLIENT, SUDO_BINARY, SYSTEMCTL_BINARY, TMP_DIR, UFW_BINARY,
 	USERADD_BINARY, WORKING_DIR, SUPPORTED_SUBDOMAINS, KILLALL_BINARY,
 	DEB_DEPENDENCIES, PACMAN_DEPENDENCIES, WEBHOSTING_DIR, WEBSITES_DIR,
+	REQUIRED_SYSTEMD_SERVICES
 )
 from os import makedirs, walk, chmod, chown, listdir
 from os.path import exists, join, basename
@@ -221,7 +222,7 @@ class InstallWorker(UserAction):
 				f.write(get(GARAGE_INSTALL_URL).content)
 			chmod(GARAGE_BINARY, 0o700)
 		rmtree(PROJECT_GIT_DIR)
-		for service in services:
+		for service in REQUIRED_SYSTEMD_SERVICES:
 			threads.append(Popen([SERVICE_BINARY, service, "restart"]))
 		# Wait for service starts.
 		wait_then_clear(threads)
