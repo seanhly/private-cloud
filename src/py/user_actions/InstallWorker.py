@@ -82,8 +82,7 @@ class InstallWorker(UserAction):
 				Popen([GIT_BINARY, "clone", PROJECT_SOURCE, PROJECT_GIT_DIR]))
 		# Wait for installations, firewall changes, git clone.
 		wait_then_clear(threads)
-		services = ["nginx", "redis-server", "transmission-daemon"]
-		for service in services:
+		for service in REQUIRED_SYSTEMD_SERVICES:
 			threads.append(Popen([SYSTEMCTL_BINARY, "enable", service]))
 		# Wait for service enabling.
 		wait_then_clear(threads)

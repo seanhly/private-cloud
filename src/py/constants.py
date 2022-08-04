@@ -98,23 +98,15 @@ SSH_CLIENT = environ.get("SSH_CLIENT", "127.0.0.1").strip().split()[0]
 PROJECT_GIT_DIR = "/private-cloud"
 PROJECT_ETC_DIR = join(PROJECT_GIT_DIR, "etc")
 HOSTNAME_FILE = "/etc/hostname"
-
 CRYPTPAD_CONFIG_SRC = join(PROJECT_GIT_DIR, "config/cryptpad.js")
 CRYPTPAD_CONFIG_DST = join(CRYPTPAD_DIR_PATH, "config/config.js")
 CRYPTPAD_NGINX_CONFIG_SRC = join(PROJECT_GIT_DIR, "cryptpad.nginx.conf")
 CRYPTPAD_NGINX_CONFIG_DST = join("/etc")
-
-ETC_REPLACEMENTS = {
-	"main_host": MAIN_HOST,
-	"website_dir": join("/srv", f"www.{MAIN_HOST}")
-}
-
 NAMESERVERS = {
 	"ns1.seanhealy.cyou",
 }
-
 SUPPORTED_SUBDOMAINS = ("docs", "secure-docs", "meet", "www")
-
+PHP_PLUGIN = "php8.1-fpm"
 DEB_DEPENDENCIES = [
 	"default-jre",
 	"tmux",
@@ -126,8 +118,8 @@ DEB_DEPENDENCIES = [
 	"npm",
 	"certbot",
 	"python3-certbot-nginx",
-	#"maven",
-	"php7.4-fpm",
+	PHP_PLUGIN,
+	#  "maven",
 ]
 PACMAN_DEPENDENCIES = [
 	"jre11-openjdk-headless",
@@ -141,8 +133,19 @@ PACMAN_DEPENDENCIES = [
 	"npm",
 	"certbot",
 	"python-certbot-nginx",
-	"php7.4-fpm",
-	#"maven",
+	PHP_PLUGIN,
+	#  "maven",
+]
+REQUIRED_SYSTEMD_SERVICES = [
+	"nginx",
+	"redis-server",
+	"transmission-daemon",
+	PHP_PLUGIN,
 ]
 WEBHOSTING_DIR = "/srv"
 WEBSITES_DIR = join(PROJECT_GIT_DIR, "src/php")
+ETC_REPLACEMENTS = {
+	"main_host": MAIN_HOST,
+	"website_dir": join("/srv", f"www.{MAIN_HOST}"),
+	"php_plugin": PHP_PLUGIN,
+}
