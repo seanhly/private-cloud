@@ -3,9 +3,7 @@ from user_actions.UserAction import UserAction
 from cloud.vendors.Vultr import Vultr
 from constants import PROJECT_LABEL
 import random
-
 from util.ssh_do import ssh_do
-random.seed(1)
 
 
 class NetworkDiskCapacity(UserAction):

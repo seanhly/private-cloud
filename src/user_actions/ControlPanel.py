@@ -5,10 +5,7 @@ from cloud.vendors.Vultr import Vultr
 from constants import PROJECT_LABEL
 import random
 from worker_actions import WorkerAction
-
 from util.ssh_do import ssh_do
-
-random.seed(1)
 
 
 class ControlPanel(UserAction):
@@ -59,6 +56,7 @@ class ControlPanel(UserAction):
 		instance_ips: Set[str] = set(
 			i.main_ip for i in instances
 		)
+		random.seed(1)
 		colours = {
 			ip: "#" + ''.join(
 				[
