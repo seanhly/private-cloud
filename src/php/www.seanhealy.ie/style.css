@@ -1,0 +1,197 @@
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond&display=swap');
+ul>li {
+	list-style: "– ";
+}
+#sidebar>li {
+	list-style: none;
+}
+#sidebar {
+	padding: 0;
+	margin: 0;
+}
+table#contact h4 {
+	text-align: center;
+}
+table#contact td {
+	vertical-align: baseline;
+	padding-top: 10px;
+}
+table#contact td:first-child {
+	padding-right: 10px;
+}
+table#contact details {
+	padding-top: 10px;
+}
+details.minimal {
+	width: fit-content;
+}
+details.minimal>summary {
+	width: fit-content;
+	padding: 5px;
+}
+textarea {
+	width: 100%;
+	height: 200px;
+}
+body {
+	margin: 0;
+	font-family: "EB Garamond", serif;
+	font-size: 25px;
+	padding: 20px;
+	padding-bottom: 0;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+}
+h1 {
+	margin: 0;
+}
+h1, h3 {
+	font-variant: small-caps;
+	text-decoration: underline;
+}
+h3 {
+	border-top: 12px dashed #ffff8c;
+}
+section {
+	max-width: 750px;
+	padding-bottom: 25px;
+}
+section:last-child {
+	float: right;
+}
+section:first-child {
+	float: left;
+	padding: 30px;
+	padding-top: 0;
+}
+table td:first-child {
+	font-style: italic;
+}
+img {
+	box-shadow: 5px 5px #66f;
+}
+#photo:hover {
+	background-color: #fff;
+}
+#photo {
+	box-shadow: 5px 5px #66f;
+	background-color: #eee;
+	border: 1px solid black;
+	padding: 20px;
+	cursor: pointer;
+	font-family: "EB Garamond", serif;
+	font-variant: small-caps;
+	font-weight: bold;
+	font-size: 20px;
+	width: 200px;
+}
+#current {
+	text-decoration: underline;
+	font-style: italic;
+}
+#content>#index tbody>tr>td {
+	border-top: 1px solid #aaa;
+	text-align: baseline;
+}
+section>div#content {
+	width: 1000px;
+	padding-bottom: 30px;
+}
+pre {
+	font-family: monospace;
+	font-size: 12px;
+	background: black;
+	color: #fff;
+}
+section#code pre a {
+	color: #aaaaff;
+	text-decoration: none;
+	text-align: right;
+}
+section#code pre a:visited {
+	color: #ffaaaa;
+}
+section#code>table:first-child>tbody>tr>td:first-child {
+	display: none;
+}
+section#code pre a.d {
+	color: red;
+}
+section#code pre a.i {
+	color: green;
+}
+section#code>table {
+	height: 0;
+}
+section#code {
+	display: grid;
+	height: 0;
+}
+section#code td {
+	border-left: 1px solid #333;
+	margin: 0;
+	padding: 5px;
+}
+section#code table {
+	border: 1px solid #333;
+	max-width: 100%;
+	font-size: 0.85em;
+}
+section#code .url a {
+	color: #66f;
+}
+section#code .url {
+	font-family: monospace;
+	background: black;
+	color: white;
+}
+section#recipe #text-table-of-contents li {
+	display: block;
+}
+section#recipe #text-table-of-contents ul {
+	padding: 0;
+}
+details>summary {
+	width: fit-content;
+	background-color: #eee;
+	box-shadow: 5px 5px #66f;
+	border: 1px solid black;
+	padding: 20px;
+	cursor: pointer;
+	font-family: "EB Garamond", serif;
+	font-variant: small-caps;
+	font-weight: bold;
+	font-size: 20px;
+}
+details>summary:hover {
+	background-color: #fff;
+}
+details[open] {
+	border: 2px dashed #aaa;
+	padding: 10px;
+}
+code {
+	font-size: 16px;
+}
+#lists details ul li {
+	display: flex;
+	justify-content: space-between;
+	border-bottom: 1px solid #bbb;
+	padding-bottom: 8px;
+}
+#lists details ul li>*:first-child {
+	padding-right: 5px;
+}
+#lists details ul li div>* {
+	display: inline-block;
+}
+#lists .marked {
+	background: lightgreen;
+}
+#pi input[type="submit"] {
+    height: 30px;
+}
+blockquote {
+	hanging-punctuation: first;
+}
