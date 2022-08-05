@@ -1,7 +1,7 @@
 if [ -t 0 ]; then
 	certbot_suffix=""
 else
-	read certbot_suffix
+  read -r certbot_suffix
 fi
 label=private-cloud
 echo "Clone repository..."
@@ -14,3 +14,4 @@ if [ "$certbot_suffix" ]; then
 else
     $label install
 fi
+echo "Installed."
