@@ -34,7 +34,7 @@ CRYPTPAD_SUDO = (SUDO, "-u", CRYPTPAD_USER)
 INSTAL = "install"
 
 
-def download_and_extract_grobid():
+def download_and_extract_grobid(**_):
 	from requests import get
 	ZipFile(
 		BytesIO(
@@ -44,7 +44,7 @@ def download_and_extract_grobid():
 	return True
 
 
-def allow_executing_grobid():
+def allow_executing_grobid(**_):
 	for path, _, files in walk(GROBID_DIR_PATH):
 		for file in files:
 			file_path = join(path, file)
@@ -52,14 +52,14 @@ def allow_executing_grobid():
 	return True
 
 
-def create_cryptpad_group():
+def create_cryptpad_group(**_):
 	return (
 		group_exists(CRYPTPAD_USER)
 		or call([GROUPADD, "-g", str(CRYPTPAD_GID), CRYPTPAD_USER]) == 0
 	)
 
 
-def create_cryptpad_user():
+def create_cryptpad_user(**_):
 	return (
 		user_exists(CRYPTPAD_USER)
 		or call([
@@ -69,54 +69,54 @@ def create_cryptpad_user():
 	)
 
 
-def create_cryptpad_dir():
+def create_cryptpad_dir(**_):
 	makedirs(CRYPTPAD_USER_DIR)
 	return True
 
 
-def chown_cryptpad_dir():
+def chown_cryptpad_dir(**_):
 	chown(CRYPTPAD_USER_DIR, CRYPTPAD_UID, CRYPTPAD_GID)
 	return True
 
 
-def clone_cryptpad_git():
+def clone_cryptpad_git(**_):
 	git_cmd = (GIT, "clone", CRYPTPAD_SOURCE, CRYPTPAD_DIR_PATH)
 	return call([*CRYPTPAD_SUDO, *git_cmd]) == 0
 
 
-def install_cryptpad_npm_dependencies():
+def install_cryptpad_npm_dependencies(**_):
 	return call([*CRYPTPAD_SUDO, NEW_NPM, INSTAL], cwd=CRYPTPAD_DIR_PATH) == 0
 
 
-def install_cryptpad_bower_dependencies():
+def install_cryptpad_bower_dependencies(**_):
 	return call([*CRYPTPAD_SUDO, BOWER, INSTAL], cwd=CRYPTPAD_DIR_PATH) == 0
 
 
-def copy_cryptpad_configs_to_dst():
+def copy_cryptpad_configs_to_dst(**_):
 	copy(CRYPTPAD_CONFIG_SRC, CRYPTPAD_CONFIG_DST)
 	return True
 
 
-def import_git_repos():
+def import_git_repos(**_):
 	for repo in IMPORT_GIT_REPOS:
 		repo_canonical_name = basename(repo)
 		if not repo_canonical_name.lower().endswith(".git"):
 			repo_canonical_name += ".git"
 
 
-def download_garage_binary():
+def download_garage_binary(**_):
 	with open(GARAGE_BINARY, "wb") as f:
 		from requests import get
 		f.write(get(GARAGE_INSTALL_URL).content)
 	return True
 
 
-def allow_garage_binary_execution():
+def allow_garage_binary_execution(**_):
 	chmod(GARAGE_BINARY, 0o700)
 	return True
 
 
-def download_and_install_cockroach():
+def download_and_install_cockroach(**_):
 	req = Request(COCKROACH_INSTALL_URL)
 	with urlopen(req) as f:
 		with tarfile.open(fileobj=f, mode='r|*') as tar:
@@ -141,11 +141,11 @@ def download_and_install_cockroach():
 	return True
 
 
-def stop_nginx():
+def stop_nginx(**_):
 	return call([SERVICE, "nginx", "stop"]) == 0
 
 
-def allow_80():
+def allow_80(**_):
 	return call([UFW, "allow", "80"]) == 0
 
 
@@ -165,7 +165,7 @@ def request_ssl_certs(**kwargs):
 	]) == 0
 
 
-def disallow_80():
+def disallow_80(**_):
 	for ufw_id in reversed(
 		sorted(
 			int(i)
@@ -186,15 +186,15 @@ def disallow_80():
 	return True
 
 
-def kill_certbot_nginx_worker():
+def kill_certbot_nginx_worker(**_):
 	return call([KILLALL, "nginx"]) == 0
 
 
-def start_nginx():
+def start_nginx(**_):
 	return call([SERVICE, "nginx", "start"]) == 0
 
 
-def make_working_dir():
+def make_working_dir(**_):
 	if not exists(WORKING_DIR):
 		makedirs(WORKING_DIR)
 	return True
@@ -226,7 +226,7 @@ def sync_etc(**kwargs) -> int:
 	return True
 
 
-def sync_websites():
+def sync_websites(**_):
 	# Copy website data to appropriate location.
 	for website in listdir(WEBSITES_DIR):
 		if rsync(
@@ -241,7 +241,7 @@ def deb_install() -> int:
 	return call([APT_GET, "-y", "install", *DEB_DEPENDENCIES]) == 0
 
 
-def install_linux_packages():
+def install_linux_packages(**_):
 	if exists(APT_GET):
 		tries = 120
 		while tries != 0 and deb_install() != 0:
@@ -253,15 +253,15 @@ def install_linux_packages():
 	return False
 
 
-def install_pip_packages():
+def install_pip_packages(**_):
 	return call([PIP, "install", *PIP_PACKAGES]) == 0
 
 
-def install_npm_packages():
+def install_npm_packages(**_):
 	return call([OLD_NPM, "install", "-g", *NPM_PACKAGES]) == 0
 
 
-def clone_project_git():
+def clone_project_git(**_):
 	return (
 		exists(PROJECT_GIT_DIR)
 		or call([GIT, "clone", PROJECT_SOURCE, PROJECT_GIT_DIR]) == 0
@@ -281,26 +281,6 @@ def allow_access_from_ssh_client():
 		UFW, "allow", "from",
 		environ.get("SSH_CLIENT", "127.0.0.1").strip().split()[0],
 	]) == 0
-
-
-class InstallationState(Enum):
-	STARTED = 0
-	NOT_STARTED = 1
-	FAILED = 2
-	PARTIAL_SUCCESS = 3
-	SUCCEEDED = 4
-
-
-def initialise_breadcrumbs(recipe):
-	if type(recipe) == tuple:
-		return tuple(initialise_breadcrumbs(step) for step in recipe)
-	elif type(recipe) == set:
-		return {
-			concurrent_step: initialise_breadcrumbs(concurrent_step)
-			for concurrent_step in recipe
-		}
-	else:
-		return InstallationState.NOT_STARTED
 
 
 RECIPE = (
