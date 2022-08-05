@@ -1,10 +1,9 @@
-from types import FunctionType
 from enum import Enum
-from typing import AnyStr
+from typing import AnyStr, List
 from user_actions.UserAction import UserAction
-from util.ThreadWithReturnValue import ThreadWithReturnValue
 from util.group_exists import group_exists
 from util.user_exists import user_exists
+from multiprocessing.pool import ThreadPool
 from time import sleep
 from constants import (
 	APT_GET, BOWER, CERTBOT_BINARY, COCKROACH, COCKROACH_BINARY_NAME,
@@ -284,61 +283,122 @@ def allow_access_from_ssh_client():
 	]) == 0
 
 
-class SubRecipeType(Enum):
-	CONCURRENT = 0
-	SEQUENTIAL = 1
-	FUNCTION = 2
+class InstallationState(Enum):
+	STARTED = 0
+	NOT_STARTED = 1
+	FAILED = 2
+	PARTIAL_SUCCESS = 3
+	SUCCEEDED = 4
+
+
+def initialise_breadcrumbs(recipe):
+	if type(recipe) == tuple:
+		return tuple(initialise_breadcrumbs(step) for step in recipe)
+	elif type(recipe) == set:
+		return {
+			concurrent_step: initialise_breadcrumbs(concurrent_step)
+			for concurrent_step in recipe
+		}
+	else:
+		return InstallationState.NOT_STARTED
+
+
+RECIPE = (
+	{
+		install_linux_packages,
+		allow_access_from_ssh_client,
+	},
+	{
+		install_pip_packages,
+		install_npm_packages,
+		clone_project_git,
+	},
+	enable_systemd_services,
+	sync_etc,
+	make_working_dir,
+	{
+		(
+			download_and_extract_grobid,
+			allow_executing_grobid,
+		),
+		(
+			create_cryptpad_group,
+			create_cryptpad_user,
+			create_cryptpad_dir,
+			chown_cryptpad_dir,
+			clone_cryptpad_git,
+			install_cryptpad_npm_dependencies,
+			install_cryptpad_bower_dependencies,
+			copy_cryptpad_configs_to_dst,
+		),
+		download_and_install_cockroach,
+		(
+			download_garage_binary,
+			allow_garage_binary_execution,
+		),
+	},
+	# Install certbot
+	stop_nginx,
+	allow_80,
+	request_ssl_certs,
+	disallow_80,
+	kill_certbot_nginx_worker,
+	# Restart services
+	restart_systemd_services,
+)
+
+
+def await_breadcrumbs(breadcrumbs):
+	if type(breadcrumbs) == tuple:
+		i = 0
+		for step in breadcrumbs:
+			step_result = await_breadcrumbs(step)
+			if not step_result:
+				return i
+			elif type(step_result) != bool:
+				return i, step_result
+			i += 1
+		return True
+	elif type(breadcrumbs) == dict:
+		successful_breadcrumbs = {}
+		for step, sub_breadcrumbs in breadcrumbs.items():
+			step_result = await_breadcrumbs(sub_breadcrumbs)
+			if step_result:
+				successful_breadcrumbs[step] = step_result
+		if all(
+			type(v) == bool for v in successful_breadcrumbs.values()
+		):
+			return True
+		return successful_breadcrumbs
+	else:
+		return breadcrumbs.get()
 
 
 class InstallWorker(UserAction):
-	current_depth = 0
-	breadcrumbs = []
+	pool: ThreadPool
+	recipe = RECIPE
 
-	def execute_installation(self, *recipe_steps):
-		if len(recipe_steps) == 0:
-			return []
-		elif len(recipe_steps) == 1:
-			recipe = recipe_steps[0]
-			if type(recipe) == FunctionType:
-				recipe_type = SubRecipeType.FUNCTION
-			else:
-				recipe_len = len(recipe)
-				if recipe_len == 0:
-					return []
-				if recipe_len == 1:
-					recipe_type = SubRecipeType.FUNCTION
-					if type(recipe) == tuple:
-						recipe = recipe[0]
-					else:
-						row = None
-						for row in recipe:
-							break
-						recipe = row
-				elif type(recipe) == set:
-					recipe_type = SubRecipeType.CONCURRENT
-				else:
-					recipe_type = SubRecipeType.SEQUENTIAL
+	def execute_installation(self, recipe):
+		if type(recipe) == tuple:
+			i = 0
+			for step in recipe:
+				breadcrumb_promises = self.execute_installation(step)
+				breadcrumbs = await_breadcrumbs(breadcrumb_promises)
+				if not breadcrumbs:
+					return i
+				elif type(breadcrumbs) != bool:
+					return i, breadcrumbs
+				i += 1
+			return True
+
+		elif type(recipe) == set:
+			return {
+				step: self.execute_installation(step)
+				for step in recipe
+			}
 		else:
-			recipe = tuple(recipe_steps)
-			recipe_type = SubRecipeType.SEQUENTIAL
-		if recipe_type == SubRecipeType.SEQUENTIAL:
-			for i, step in enumerate(recipe[:-1]):
-				for thread in self.execute_installation(step):
-					thread.join()
-			return self.execute_installation(recipe[-1])
-		elif recipe_type == SubRecipeType.CONCURRENT:
-			return [
-				thread
-				for concurrent_step in recipe
-				for thread in self.execute_installation(concurrent_step)
-			]
-		else:
-			thread = ThreadWithReturnValue(
-				target=recipe,
-				kwargs=self.options if self.options else {}
-			)
-			thread.start()
-			return [thread]
+			kwargs = self.options if self.options else {}
+			return self.pool.apply_async(recipe, kwds=kwargs)
 
 	@classmethod
 	def command(cls) -> str:
@@ -361,46 +421,6 @@ class InstallWorker(UserAction):
 		return []
 
 	def execute(self):
-		self.execute_installation(
-			{
-				install_linux_packages,
-				allow_access_from_ssh_client,
-			},
-			{
-				install_pip_packages,
-				install_npm_packages,
-				clone_project_git,
-			},
-			enable_systemd_services,
-			sync_etc,
-			make_working_dir,
-			{
-				(
-					download_and_extract_grobid,
-					allow_executing_grobid,
-				),
-				(
-					create_cryptpad_group,
-					create_cryptpad_user,
-					create_cryptpad_dir,
-					chown_cryptpad_dir,
-					clone_cryptpad_git,
-					install_cryptpad_npm_dependencies,
-					install_cryptpad_bower_dependencies,
-					copy_cryptpad_configs_to_dst,
-				),
-				download_and_install_cockroach,
-				(
-					download_garage_binary,
-					allow_garage_binary_execution,
-				),
-			},
-			# Install certbot
-			stop_nginx,
-			allow_80,
-			request_ssl_certs,
-			disallow_80,
-			kill_certbot_nginx_worker,
-			# Restart services
-			restart_systemd_services,
-		)
+		self.pool = ThreadPool(processes=1)
+		breadcrumbs = self.execute_installation(RECIPE)
+		print(breadcrumbs)
