@@ -270,15 +270,15 @@ def clone_project_git(**_):
 	)
 
 
-def enable_systemd_services():
+def enable_systemd_services(**_):
 	return call([SYSTEMCTL, "enable", *NATIVE_SERVICES]) == 0
 
 
-def restart_systemd_services():
+def restart_systemd_services(**_):
 	return call([SYSTEMCTL, "restart", *NATIVE_SERVICES]) == 0
 
 
-def allow_access_from_ssh_client():
+def allow_access_from_ssh_client(**_):
 	place = environ.get("SSH_CLIENT", "127.0.0.1").strip().split()[0]
 	return call([UFW, "allow", "from", place]) == 0
 
