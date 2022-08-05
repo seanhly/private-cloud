@@ -238,7 +238,7 @@ def sync_websites(**_):
 
 
 def deb_install() -> int:
-	return call([APT_GET, "-y", "install", *DEB_DEPENDENCIES]) == 0
+	return call([APT_GET, "-y", "install", *DEB_DEPENDENCIES])
 
 
 def install_linux_packages(**_):
