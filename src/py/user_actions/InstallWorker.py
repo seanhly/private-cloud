@@ -1,4 +1,4 @@
-from typing import AnyStr, Dict, Tuple, Union, Any
+from typing import AnyStr, Tuple, Union, Any
 from user_actions.UserAction import UserAction
 from util.group_exists import group_exists
 from util.user_exists import user_exists
@@ -342,6 +342,7 @@ def await_breadcrumbs(breadcrumb_promises):
 			return True
 		return successful_breadcrumbs
 	else:
+		print(breadcrumb_promises, "=", breadcrumb_promises.get())
 		return breadcrumb_promises.get()
 
 
@@ -355,7 +356,9 @@ class InstallWorker(UserAction):
 			tuple_breadcrumb: Union[bool, int, Tuple[int, Any]] = True
 			for step in recipe:
 				breadcrumb_promises = self.begin_installation(step)
+				print("BCP:", breadcrumb_promises)
 				breadcrumbs = await_breadcrumbs(breadcrumb_promises)
+				print("BC:", breadcrumb_promises)
 				if not breadcrumbs:
 					tuple_breadcrumb = i
 					break
