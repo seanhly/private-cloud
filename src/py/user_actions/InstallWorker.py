@@ -398,4 +398,5 @@ class InstallWorker(UserAction):
 
 	def execute(self):
 		self.pool = ThreadPool(processes=1)
-		breadcrumbs = self.begin_installation(RECIPE).get()
+		breadcrumbs = self.begin_installation(RECIPE)
+		print(breadcrumbs)
