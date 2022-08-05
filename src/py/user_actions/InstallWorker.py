@@ -293,9 +293,12 @@ RECIPE = (
 		install_npm_packages,
 		clone_project_git,
 	},
-	enable_systemd_services,
-	sync_etc,
-	make_working_dir,
+	{
+		enable_systemd_services,
+		sync_etc,
+		make_working_dir,
+		sync_websites,
+	},
 	{
 		(
 			download_and_extract_grobid,
@@ -316,13 +319,15 @@ RECIPE = (
 			download_garage_binary,
 			allow_garage_binary_execution,
 		),
+		(
+			# Install certbot
+			stop_nginx,
+			allow_80,
+			request_ssl_certs,
+			disallow_80,
+			kill_certbot_nginx_worker,
+		)
 	},
-	# Install certbot
-	stop_nginx,
-	allow_80,
-	request_ssl_certs,
-	disallow_80,
-	kill_certbot_nginx_worker,
 	# Restart services
 	restart_systemd_services,
 )
