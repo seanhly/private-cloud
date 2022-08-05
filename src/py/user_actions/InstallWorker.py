@@ -361,7 +361,9 @@ class InstallWorker(UserAction):
 			tuple_breadcrumb: Union[bool, int, Tuple[int, Any]] = True
 			for step in recipe:
 				breadcrumb_promises = self.begin_installation(step)
+				print("BCP:", breadcrumb_promises)
 				breadcrumbs = await_breadcrumbs(breadcrumb_promises)
+				print("BC:", breadcrumbs)
 				if not breadcrumbs:
 					tuple_breadcrumb = i
 					break
