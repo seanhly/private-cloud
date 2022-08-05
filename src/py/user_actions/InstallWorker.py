@@ -134,8 +134,10 @@ def import_git_repos(**_):
 		if creating_dir or not exists(join(local_repo_path, "HEAD")):
 			# TODO make this async.  Populate the recipe with lists
 			# of dynamically created functions.
-			if call([GIT, "init", "--bare", local_repo_path]) != 0:
-				return 0
+			result = call([GIT, "init", "--bare", local_repo_path])
+			if result != 0:
+				return result
+	return 0
 
 
 def download_garage_binary(**_):
