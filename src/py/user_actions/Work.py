@@ -22,12 +22,6 @@ class Work(UserAction):
 	def arg_options(self):
 		return {QUEUE_OPTION, PRE_PUSH_OPTION}
 
-	def obligatory_option_groups(self):
-		return []
-
-	def blocking_options(self):
-		return []
-	
 	def execute(self) -> None:
 		from redis import Redis
 		r = Redis(db=REDIS_WORK_QUEUES_DB)

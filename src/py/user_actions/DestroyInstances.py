@@ -12,18 +12,6 @@ class DestroyInstances(UserAction):
 	@classmethod
 	def description(cls):
 		return "Destroy all server instances"
-
-	def recognised_options(self):
-		return set()
-
-	def arg_options(self):
-		return set()
-
-	def obligatory_option_groups(self):
-		return []
-
-	def blocking_options(self):
-		return []
 	
 	def execute(self) -> None:
 		current_pool = Pool.load(Vultr)

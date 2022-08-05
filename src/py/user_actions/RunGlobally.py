@@ -17,18 +17,6 @@ class RunGlobally(UserAction):
 	def description(cls):
 		return "Run a command on all worker machines simultaneously."
 
-	def recognised_options(self):
-		return set()
-
-	def arg_options(self):
-		return set()
-
-	def obligatory_option_groups(self):
-		return []
-
-	def blocking_options(self):
-		return []
-	
 	def execute(self) -> None:
 		vendor = Vultr
 		instances = vendor.list_instances(label=PROJECT_LABEL)

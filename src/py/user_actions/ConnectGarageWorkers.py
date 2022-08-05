@@ -16,18 +16,6 @@ class ConnectGarageWorkers(UserAction):
 	def description(cls):
 		return "Connect up garage workers."
 
-	def recognised_options(self):
-		return set()
-
-	def arg_options(self):
-		return set()
-
-	def obligatory_option_groups(self):
-		return []
-
-	def blocking_options(self):
-		return []
-	
 	def execute(self) -> None:
 		the_network = get_network()
 		garage_active_on_ips: List[str] = []

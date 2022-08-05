@@ -24,18 +24,6 @@ class StartWorker(UserAction):
 	def description(cls):
 		return "Start worker node."
 
-	def recognised_options(self):
-		return set()
-
-	def arg_options(self):
-		return set()
-
-	def obligatory_option_groups(self):
-		return []
-
-	def blocking_options(self):
-		return []
-	
 	def special_services(self) -> Dict[str, Tuple[str, str, str]]:
 		return {}
 	

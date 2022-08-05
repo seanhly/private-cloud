@@ -13,18 +13,6 @@ class ParseAcademicPDF(UserAction):
 	@classmethod
 	def description(cls):
 		return "Parse an academic PDF using the GROBID cluster"
-
-	def recognised_options(self):
-		return set()
-
-	def arg_options(self):
-		return set()
-
-	def obligatory_option_groups(self):
-		return []
-
-	def blocking_options(self):
-		return []
 	
 	def execute(self) -> None:
 		pool = Pool.load(Vultr)

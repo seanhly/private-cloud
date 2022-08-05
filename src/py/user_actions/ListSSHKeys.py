@@ -11,18 +11,6 @@ class ListSSHKeys(UserAction):
 	def description(cls):
 		return "List available SSH keys"
 
-	def recognised_options(self):
-		return set()
-
-	def arg_options(self):
-		return set()
-
-	def obligatory_option_groups(self):
-		return []
-
-	def blocking_options(self):
-		return []
-	
 	def execute(self) -> None:
 		for ssh in Vultr.list_ssh_keys():
 			print(str(ssh))

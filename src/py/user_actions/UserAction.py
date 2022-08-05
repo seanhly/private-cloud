@@ -118,24 +118,20 @@ class UserAction(ABC):
 		return self._cached_indexed_blocking_options
 
 	# Specify a list of valid options.
-	@abstractmethod
 	def recognised_options(self) -> Set[str]:
 		return set()
 
 	# One option from each set must appear in the option list.  Each str
 	# must also appear in the options field.
-	@abstractmethod
 	def obligatory_option_groups(self) -> List[Set[str]]:
 		return []
 
 	# Specify the blocking options, i.e.  those options that cannot appear
 	# together.  As expected, each str must also appear in the options field.
-	@abstractmethod
 	def blocking_options(self) -> List[Set[str]]:
 		return []
 
 	# Specify the options which take an argument.
-	@abstractmethod
 	def arg_options(self) -> Dict[str, Type[Argument]]:
 		return {}
 

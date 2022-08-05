@@ -32,15 +32,6 @@ class CreateInstance(UserAction):
 	def recognised_options(self):
 		return {"blank"}
 
-	def arg_options(self):
-		return set()
-
-	def obligatory_option_groups(self):
-		return []
-
-	def blocking_options(self):
-		return []
-
 	def execute(self) -> None:
 		current_pool = Pool.load(Vultr)
 		count = int(self.query.strip()) if self.query else 1

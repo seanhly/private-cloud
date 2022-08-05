@@ -30,12 +30,6 @@ class CreateInstanceOnIPs(UserAction):
 
 	def arg_options(self):
 		return {MAIN_IP_OPTION, CERTBOT_SUFFIX_OPTION}
-
-	def obligatory_option_groups(self):
-		return []
-
-	def blocking_options(self):
-		return []
 	
 	def execute(self) -> None:
 		if self.options and MAIN_IP_OPTION in self.options:
@@ -74,19 +68,13 @@ class CreateInstanceOnIPs(UserAction):
 				f"{UFW} allow from {new_ip}"
 				for new_ip in new_instance_ips
 			), threads)
-		# New workers can now reach each other.
-		# | <-->
+		# Pre-existing workers can now reach new workers and each other.
+		# a) |--->
+		# b) | <-->
 		for new_ip in new_instance_ips:
 			ssh_do(new_ip, (
-				f"{UFW} allow from {new_ip}"
-				for new_ip in new_instance_ips
-			), threads)
-		# Pre-existing workers can now reach new workers.
-		# |--->
-		for new_ip in new_instance_ips:
-			ssh_do(new_ip, (
-				f"{UFW} allow from {previous_ip}"
-				for previous_ip in previous_instance_ips
+				f"{UFW} allow from {other_ip}"
+				for other_ip in previous_instance_ips.union(new_instance_ips)
 			), threads)
 		for previous_ip in previous_instance_ips:
 			threads.append(
@@ -96,7 +84,7 @@ class CreateInstanceOnIPs(UserAction):
 			threads.append(
 				extend_network(
 					new_ip,
-					set(previous_instance_ips).union(new_instance_ips),
+					previous_instance_ips.union(new_instance_ips),
 					True,
 				)
 			)

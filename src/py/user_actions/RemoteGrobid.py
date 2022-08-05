@@ -12,18 +12,6 @@ class RemoteGrobid(UserAction):
 	def description(cls):
 		return "Run the GROBID server remotely"
 
-	def recognised_options(self):
-		return set()
-
-	def arg_options(self):
-		return set()
-
-	def obligatory_option_groups(self):
-		return []
-
-	def blocking_options(self):
-		return []
-	
 	def execute(self) -> None:
 		pool = Pool.load(Vultr)
 		pool.run_grobid()

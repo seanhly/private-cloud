@@ -16,18 +16,6 @@ class SetGarageLayout(UserAction):
 	def description(cls):
 		return "Set the disk and datacenter layout of Garage nodes."
 
-	def recognised_options(self):
-		return set()
-
-	def arg_options(self):
-		return set()
-
-	def obligatory_option_groups(self):
-		return []
-
-	def blocking_options(self):
-		return []
-	
 	def execute(self) -> None:
 		lines: List[str] = []
 		for line in check_output([

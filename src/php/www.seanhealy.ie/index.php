@@ -59,6 +59,12 @@
 	</td>
 </tr>
 <tr>
+	<td>social:</td>
+	<td>
+        <a rel="me" href="https://idf.social/@sean">@sean@idf.social</a>
+	</td>
+</tr>
+<tr>
 	<td></td>
 	<td>
 		<h4>More Contact Info</h4>
