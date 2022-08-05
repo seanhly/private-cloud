@@ -334,11 +334,11 @@ RECIPE = (
 		clone_project_git,
 		(
 			create_git_user,
+			create_git_user_home_dir,
 			create_git_ssh_dir,
 			populate_git_ssh_authorized_keys_file,
-			set_git_home_dir_permissions,
-			create_git_user_home_dir,
 			import_git_repos,
+			set_git_home_dir_permissions,
 		)
 	},
 	{
