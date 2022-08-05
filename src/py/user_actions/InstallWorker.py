@@ -14,7 +14,9 @@ from constants import (
 	PROJECT_ETC_DIR, PROJECT_GIT_DIR, SERVICE, SUDO, SYSTEMCTL, TMP_DIR, UFW,
 	USERADD, WORKING_DIR, SUPPORTED_SUBDOMAINS, KILLALL, DEB_DEPENDENCIES,
 	PACMAN_DEPENDENCIES, WEBHOSTING_DIR, WEBSITES_DIR, NATIVE_SERVICES,
-	NPM_PACKAGES, PIP_PACKAGES, IMPORT_GIT_REPOS,
+	NPM_PACKAGES, PIP_PACKAGES, IMPORT_GIT_REPOS, GIT_USER_HOME_DIR,
+	GIT_USER, GIT_SSH_DIR, GIT_SSH_AUTHORISED_KEYS_FILE,
+	ROOT_SSH_AUTHORISED_KEYS_FILE, CHOWN
 )
 from os import makedirs, walk, chmod, chown, listdir, environ
 from os.path import exists, join, basename
@@ -96,11 +98,44 @@ def copy_cryptpad_configs_to_dst(**_):
 	return True
 
 
+def create_git_user(**_):
+	return user_exists(GIT_USER) or call([USERADD, GIT_USER]) == 0
+
+
+def create_git_ssh_dir(**_):
+	makedirs(GIT_SSH_DIR, mode=0o700)
+	return True
+
+
+def populate_git_ssh_authorized_keys_file(**_):
+	copy(ROOT_SSH_AUTHORISED_KEYS_FILE, GIT_SSH_AUTHORISED_KEYS_FILE)
+	return True
+
+
+def set_git_home_dir_permissions(**_):
+	user_and_group = f"{GIT_USER}:{GIT_USER}"
+	return call([CHOWN, "-R", user_and_group, GIT_USER_HOME_DIR]) == 0
+
+
+def create_git_user_home_dir(**_):
+	makedirs(GIT_USER_HOME_DIR)
+	return True
+
+
 def import_git_repos(**_):
 	for repo in IMPORT_GIT_REPOS:
 		repo_canonical_name = basename(repo)
 		if not repo_canonical_name.lower().endswith(".git"):
 			repo_canonical_name += ".git"
+		local_repo_path = join(GIT_USER_HOME_DIR, repo_canonical_name)
+		creating_dir = not exists(local_repo_path)
+		if creating_dir:
+			makedirs(local_repo_path)
+		if creating_dir or not exists(join(local_repo_path, "HEAD")):
+			# TODO make this async.  Populate the recipe with lists
+			# of dynamically created functions.
+			if call([GIT, "init", "--bare", local_repo_path]) != 0:
+				return 0
 
 
 def download_garage_binary(**_):
@@ -283,15 +318,28 @@ def allow_access_from_ssh_client(**_):
 	return call([UFW, "allow", "from", place]) == 0
 
 
+def allow_https(**_):
+	return call([UFW, "allow", "443"]) == 0
+
+
 RECIPE = (
 	{
 		install_linux_packages,
 		allow_access_from_ssh_client,
+		allow_https,
 	},
 	{
 		install_pip_packages,
 		install_npm_packages,
 		clone_project_git,
+		(
+			create_git_user,
+			create_git_ssh_dir,
+			populate_git_ssh_authorized_keys_file,
+			set_git_home_dir_permissions,
+			create_git_user_home_dir,
+			import_git_repos,
+		)
 	},
 	{
 		enable_systemd_services,
@@ -354,8 +402,6 @@ def await_breadcrumbs(breadcrumb_promises):
 		return result
 
 
-
-
 class InstallWorker(UserAction):
 	pool: ThreadPool
 	recipe = RECIPE
@@ -402,6 +448,6 @@ class InstallWorker(UserAction):
 		return {CERTBOT_SUFFIX_OPTION}
 
 	def execute(self):
-		self.pool = ThreadPool(processes=1)
+		self.pool = ThreadPool(processes=4)
 		breadcrumbs = self.begin_installation(RECIPE)
 		print(breadcrumbs)

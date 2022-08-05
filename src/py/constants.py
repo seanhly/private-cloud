@@ -19,7 +19,8 @@ CRYPTPAD_SOURCE = f"{GITHUB_HOST}{CRYPTPAD_REPO}"
 GROBID_VERSION = "0.7.1"
 GROBID_SOURCE = f"{GROBID_SOURCE}/archive/refs/tags/{GROBID_VERSION}.zip"
 GROBID_DIR_NAME = f"grobid-{GROBID_VERSION}"
-WORKING_DIR = environ["HOME"]
+ROOT_HOME_DIR = environ["HOME"]
+WORKING_DIR = ROOT_HOME_DIR
 
 GROBID_DIR_PATH = join(WORKING_DIR, GROBID_DIR_NAME)
 CRYPTPAD_USER = "cryptpad"
@@ -73,7 +74,8 @@ TMP_DIR = "/tmp"
 
 TMUX_BINARY = "/usr/bin/tmux"
 UFW = "/usr/sbin/ufw"
-RSYNC_BINARY = "/usr/bin/rsync"
+RSYNC = "/usr/bin/rsync"
+CHOWN = "/usr/bin/chown"
 APT_GET = "/usr/bin/apt-get"
 PACMAN = "/usr/bin/pacman"
 SYSTEMCTL = "/usr/bin/systemctl"
@@ -150,10 +152,14 @@ ETC_REPLACEMENTS = {
 	"php_plugin": PHP_PLUGIN,
 }
 ALPHA_NUMERICAL_LOWERCASE_CHARACTERS = "abcdefghijklmnopqrstuvwxyz0123456789"
-
 # Add git repos for importing
 IMPORT_GIT_REPOS = [
 	"https://github.com/seanhly/private-cloud"
 	"https://github.com/seanhly/phd"
 	"https://github.com/seanhly/docmuch"
 ]
+GIT_USER = "git"
+GIT_USER_HOME_DIR = f"/home/{GIT_USER}"
+GIT_SSH_DIR = join(GIT_USER_HOME_DIR, ".ssh")
+GIT_SSH_AUTHORISED_KEYS_FILE = join(GIT_SSH_DIR, "authorized_keys")
+ROOT_SSH_AUTHORISED_KEYS_FILE = join(ROOT_HOME_DIR, ".ssh/authorized_keys")
