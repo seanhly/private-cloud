@@ -345,7 +345,10 @@ def await_breadcrumbs(breadcrumb_promises):
 			return True
 		return successful_breadcrumbs
 	else:
-		return breadcrumb_promises.get()
+		print("Awaiting result:")
+		result = breadcrumb_promises.get()
+		print("Result:", result)
+		return result
 
 
 class InstallWorker(UserAction):
