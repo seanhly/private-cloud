@@ -123,8 +123,8 @@ def create_git_user_home_dir(**_):
 
 
 def import_git_repos(**_):
-	for repo in IMPORT_GIT_REPOS:
-		repo_canonical_name = basename(repo)
+	for repo_url in IMPORT_GIT_REPOS:
+		repo_canonical_name = basename(repo_url)
 		if not repo_canonical_name.lower().endswith(".git"):
 			repo_canonical_name += ".git"
 		local_repo_path = join(GIT_USER_HOME_DIR, repo_canonical_name)
@@ -135,9 +135,10 @@ def import_git_repos(**_):
 			# TODO make this async.  Populate the recipe with lists
 			# of dynamically created functions.
 			result = call([GIT, "init", "--bare", local_repo_path])
+			print(repo_canonical_name, result)
 			if result != 0:
-				return result
-	return 0
+				return False
+	return True
 
 
 def download_garage_binary(**_):
