@@ -378,6 +378,11 @@ class InstallWorker(UserAction):
 			}
 		else:
 			kwargs = self.options if self.options else {}
+			from util.colors import OKGREEN, ENDC
+			print(OKGREEN + recipe.__name__ + ENDC)
+			print(OKGREEN + recipe.__name__ + ENDC)
+			print(OKGREEN + recipe.__name__ + ENDC)
+			print(OKGREEN + recipe.__name__ + ENDC)
 			return self.pool.apply_async(recipe, kwds=kwargs)
 
 	@classmethod
