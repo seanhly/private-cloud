@@ -237,7 +237,10 @@ def sync_websites(**_):
 
 
 def deb_install() -> int:
-	return call([APT_GET, "-y", "install", *DEB_DEPENDENCIES])
+	env = environ.copy()
+	env["NEEDRESTART_SUSPEND"] = "1"
+	env["DEBIAN_FRONTEND"] = "noninteractive"
+	return call([APT_GET, "-y", "install", *DEB_DEPENDENCIES], env=env)
 
 
 def install_linux_packages(**_):
@@ -342,7 +345,6 @@ def await_breadcrumbs(breadcrumb_promises):
 			return True
 		return successful_breadcrumbs
 	else:
-		print(breadcrumb_promises, "=", breadcrumb_promises.get())
 		return breadcrumb_promises.get()
 
 
@@ -356,9 +358,7 @@ class InstallWorker(UserAction):
 			tuple_breadcrumb: Union[bool, int, Tuple[int, Any]] = True
 			for step in recipe:
 				breadcrumb_promises = self.begin_installation(step)
-				print("BCP:", breadcrumb_promises)
 				breadcrumbs = await_breadcrumbs(breadcrumb_promises)
-				print("BC:", breadcrumb_promises)
 				if not breadcrumbs:
 					tuple_breadcrumb = i
 					break
