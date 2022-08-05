@@ -1,5 +1,4 @@
-from enum import Enum
-from typing import AnyStr, List
+from typing import AnyStr, Dict, Tuple, Union, Any
 from user_actions.UserAction import UserAction
 from util.group_exists import group_exists
 from util.user_exists import user_exists
@@ -358,19 +357,26 @@ class InstallWorker(UserAction):
 	pool: ThreadPool
 	recipe = RECIPE
 
+	def await_install_sequence(self, recipe):
+		i = 0
+		for step in recipe:
+			breadcrumb_promises = self.execute_installation(step)
+			breadcrumbs = await_breadcrumbs(breadcrumb_promises)
+			if not breadcrumbs:
+				return i
+			elif type(breadcrumbs) != bool:
+				return i, breadcrumbs
+			i += 1
+		return True
+
 	def execute_installation(self, recipe):
 		if type(recipe) == tuple:
-			i = 0
-			for step in recipe:
-				breadcrumb_promises = self.execute_installation(step)
-				breadcrumbs = await_breadcrumbs(breadcrumb_promises)
-				if not breadcrumbs:
-					return i
-				elif type(breadcrumbs) != bool:
-					return i, breadcrumbs
-				i += 1
-			return True
-
+			return self.pool.apply_async(
+				self.await_install_sequence,
+				kwds=dict(
+					recipe=recipe
+				)
+			)
 		elif type(recipe) == set:
 			return {
 				step: self.execute_installation(step)
@@ -379,9 +385,6 @@ class InstallWorker(UserAction):
 		else:
 			kwargs = self.options if self.options else {}
 			from util.colors import OKGREEN, ENDC
-			print(OKGREEN + recipe.__name__ + ENDC)
-			print(OKGREEN + recipe.__name__ + ENDC)
-			print(OKGREEN + recipe.__name__ + ENDC)
 			print(OKGREEN + recipe.__name__ + ENDC)
 			return self.pool.apply_async(recipe, kwds=kwargs)
 
@@ -407,5 +410,5 @@ class InstallWorker(UserAction):
 
 	def execute(self):
 		self.pool = ThreadPool(processes=1)
-		breadcrumbs = self.execute_installation(RECIPE)
+		breadcrumbs = self.execute_installation(RECIPE).get()
 		print(breadcrumbs)
