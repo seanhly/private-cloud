@@ -276,10 +276,8 @@ def restart_systemd_services():
 
 
 def allow_access_from_ssh_client():
-	return call([
-		UFW, "allow", "from",
-		environ.get("SSH_CLIENT", "127.0.0.1").strip().split()[0],
-	]) == 0
+	place = environ.get("SSH_CLIENT", "127.0.0.1").strip().split()[0]
+	return call([UFW, "allow", "from", place]) == 0
 
 
 RECIPE = (
@@ -327,20 +325,14 @@ RECIPE = (
 )
 
 
-def await_breadcrumbs(breadcrumbs):
-	if type(breadcrumbs) == tuple:
-		i = 0
-		for step in breadcrumbs:
-			step_result = await_breadcrumbs(step)
-			if not step_result:
-				return i
-			elif type(step_result) != bool:
-				return i, step_result
-			i += 1
-		return True
-	elif type(breadcrumbs) == dict:
+def await_breadcrumbs(breadcrumb_promises):
+	if type(breadcrumb_promises) in {tuple, int, bool}:
+		# Previously awaited result from installation sequence (tuples).
+		# I.e. no promises to be found here.
+		return breadcrumb_promises
+	elif type(breadcrumb_promises) == dict:
 		successful_breadcrumbs = {}
-		for step, sub_breadcrumbs in breadcrumbs.items():
+		for step, sub_breadcrumbs in breadcrumb_promises.items():
 			step_result = await_breadcrumbs(sub_breadcrumbs)
 			if step_result:
 				successful_breadcrumbs[step] = step_result
@@ -350,36 +342,32 @@ def await_breadcrumbs(breadcrumbs):
 			return True
 		return successful_breadcrumbs
 	else:
-		return breadcrumbs.get()
+		return breadcrumb_promises.get()
 
 
 class InstallWorker(UserAction):
 	pool: ThreadPool
 	recipe = RECIPE
 
-	def await_install_sequence(self, recipe):
-		i = 0
-		for step in recipe:
-			breadcrumb_promises = self.execute_installation(step)
-			breadcrumbs = await_breadcrumbs(breadcrumb_promises)
-			if not breadcrumbs:
-				return i
-			elif type(breadcrumbs) != bool:
-				return i, breadcrumbs
-			i += 1
-		return True
-
-	def execute_installation(self, recipe):
+	def begin_installation(self, recipe):
 		if type(recipe) == tuple:
-			return self.pool.apply_async(
-				self.await_install_sequence,
-				kwds=dict(
-					recipe=recipe
-				)
-			)
+			i = 0
+			tuple_breadcrumb: Union[bool, int, Tuple[int, Any]] = True
+			for step in recipe:
+				breadcrumb_promises = self.begin_installation(step)
+				breadcrumbs = await_breadcrumbs(breadcrumb_promises)
+				if not breadcrumbs:
+					tuple_breadcrumb = i
+					break
+				elif type(breadcrumbs) != bool:
+					tuple_breadcrumb = i, breadcrumbs
+					break
+				else:
+					i += 1
+			return tuple_breadcrumb
 		elif type(recipe) == set:
 			return {
-				step: self.execute_installation(step)
+				step: self.begin_installation(step)
 				for step in recipe
 			}
 		else:
@@ -410,5 +398,4 @@ class InstallWorker(UserAction):
 
 	def execute(self):
 		self.pool = ThreadPool(processes=1)
-		breadcrumbs = self.execute_installation(RECIPE).get()
-		print(breadcrumbs)
+		breadcrumbs = self.begin_installation(RECIPE).get()
