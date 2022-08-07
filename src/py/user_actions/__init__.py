@@ -20,3 +20,4 @@ from user_actions.ConnectGarageWorkers import ConnectGarageWorkers
 from user_actions.SetGarageLayout import SetGarageLayout
 from user_actions.StartMainWorker import StartMainWorker
 from user_actions.BackupCryptpad import BackupCryptpad
+from user_actions.RestoreCryptpad import RestoreCryptpad

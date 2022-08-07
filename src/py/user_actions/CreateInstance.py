@@ -117,7 +117,4 @@ class CreateInstance(UserAction):
 				if certbot_suffix else []
 			)
 		)
-		for arg in create_instance_on_ips_args:
-			print(arg)
-			print("\t", str(arg))
 		CreateInstanceOnIPs(create_instance_on_ips_args).execute()
