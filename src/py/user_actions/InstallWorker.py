@@ -77,9 +77,9 @@ def create_cryptpad_dir(**_):
 	return True
 
 
-def chown_cryptpad_dir(**_):
-	chown(CRYPTPAD_USER_DIR, CRYPTPAD_UID, CRYPTPAD_GID)
-	return True
+def chown_cryptpad_home_dir(**_):
+	user_and_group = f"{CRYPTPAD_USER}:{CRYPTPAD_USER}"
+	return call([CHOWN, "-R", user_and_group, CRYPTPAD_USER_DIR]) == 0
 
 
 def clone_cryptpad_git(**_):
@@ -121,7 +121,7 @@ def populate_cryptpad_ssh_authorized_keys_file(**_):
 	return True
 
 
-def set_git_home_dir_permissions(**_):
+def chown_git_home_dir(**_):
 	user_and_group = f"{GIT_USER}:{GIT_USER}"
 	return call([CHOWN, "-R", user_and_group, GIT_USER_HOME_DIR]) == 0
 
@@ -415,7 +415,6 @@ RECIPE = (
 			set_cloned_git_urls_to_local_dir,
 			git_push_to_local_bare_repos,
 			remove_temporary_local_git_repos,
-			set_git_home_dir_permissions,
 			allow_git_port,
 			allow_smtp_port,
 		)
@@ -435,7 +434,6 @@ RECIPE = (
 			create_cryptpad_dir,
 			create_cryptpad_ssh_dir,
 			populate_cryptpad_ssh_authorized_keys_file,
-			chown_cryptpad_dir,
 			clone_cryptpad_git,
 			install_cryptpad_npm_dependencies,
 			install_cryptpad_bower_dependencies,
@@ -450,14 +448,18 @@ RECIPE = (
 		sync_configs,
 		sync_websites,
 	},
-	(
-		# Install certbot
-		stop_nginx,
-		allow_80,
-		request_ssl_certs,
-		disallow_80,
-		kill_certbot_nginx_worker,
-	),
+	{
+		chown_cryptpad_home_dir,
+		chown_git_home_dir,
+		(
+			# Install certbot
+			stop_nginx,
+			allow_80,
+			request_ssl_certs,
+			disallow_80,
+			kill_certbot_nginx_worker,
+		),
+	},
 	# Restart services
 	restart_systemd_services,
 )
