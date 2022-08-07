@@ -54,6 +54,15 @@ def allow_executing_grobid(**_):
 	return True
 
 
+def allow_executing_cryptpad(**_):
+	for path, _, files in walk(CRYPTPAD_DIR_PATH):
+		chmod(path, 0o777)
+		for file in files:
+			file_path = join(path, file)
+			chmod(file_path, 0o777)
+	return True
+
+
 def create_cryptpad_group(**_):
 	return (
 		group_exists(CRYPTPAD_USER)
@@ -443,6 +452,7 @@ RECIPE = (
 			clone_cryptpad_git,
 			install_cryptpad_npm_dependencies,
 			install_cryptpad_bower_dependencies,
+			allow_executing_cryptpad,
 		),
 		download_and_install_cockroach,
 		(

@@ -71,15 +71,15 @@ class CreateInstanceOnIPs(UserAction):
 		# Pre-existing workers can now reach new workers and each other.
 		# a) |--->
 		# b) | <-->
+		for previous_ip in previous_instance_ips:
+			threads.append(
+				extend_network(previous_ip, new_instance_ips, True)
+			)
 		for new_ip in new_instance_ips:
 			ssh_do(new_ip, (
 				f"{UFW} allow from {other_ip}"
 				for other_ip in previous_instance_ips.union(new_instance_ips)
 			), threads)
-		for previous_ip in previous_instance_ips:
-			threads.append(
-				extend_network(previous_ip, new_instance_ips, True)
-			)
 		for new_ip in new_instance_ips:
 			threads.append(
 				extend_network(
