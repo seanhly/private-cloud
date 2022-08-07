@@ -244,7 +244,7 @@ def request_ssl_certs(**kwargs):
 	)
 	return call([
 		CERTBOT_BINARY, "--nginx", "--agree-tos", "-m", MAIN_EMAIL,
-		"-d", comma_separated_domains,
+		"--non-interactive", "-d", comma_separated_domains,
 	]) == 0
 
 
@@ -290,7 +290,7 @@ def sync_configs(**kwargs) -> int:
 			dict(certbot_suffix=kwargs[CERTBOT_SUFFIX_OPTION])
 		)
 	for src_dir, _, files in walk(PROJECT_CONFIGS_DIR):
-		dst_dir = src_dir[len(PROJECT_GIT_DIR):]
+		dst_dir = src_dir[len(PROJECT_CONFIGS_DIR):]
 		if files:
 			if not exists(dst_dir):
 				makedirs(dst_dir)
