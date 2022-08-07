@@ -46,7 +46,8 @@ if exists(VULTR_TOKEN_PATH):
 		VULTR_TOKEN = f.read().strip()
 
 PROJECT_LABEL = "private-cloud"
-EXECUTABLE = f"/usr/bin/{PROJECT_LABEL}"
+EXECUTABLE = join("/usr/bin", PROJECT_LABEL)
+LOCAL_EXECUTABLE = join(HOME_DIR, "Scripts", PROJECT_LABEL)
 
 REDIS_WORKER_NETWORK_DB = 0
 REDIS_WORK_QUEUES_DB = 1

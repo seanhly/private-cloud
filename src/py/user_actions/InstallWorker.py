@@ -77,9 +77,14 @@ def create_cryptpad_dir(**_):
 	return True
 
 
-def chown_cryptpad_home_dir(**_):
+def recursively_chown_cryptpad_home_dir(**_):
 	user_and_group = f"{CRYPTPAD_USER}:{CRYPTPAD_USER}"
 	return call([CHOWN, "-R", user_and_group, CRYPTPAD_USER_DIR]) == 0
+
+
+def chown_cryptpad_home_dir(**_):
+	chown(CRYPTPAD_USER_DIR, CRYPTPAD_UID, CRYPTPAD_GID)
+	return True
 
 
 def clone_cryptpad_git(**_):
@@ -434,6 +439,7 @@ RECIPE = (
 			create_cryptpad_dir,
 			create_cryptpad_ssh_dir,
 			populate_cryptpad_ssh_authorized_keys_file,
+			chown_cryptpad_home_dir,
 			clone_cryptpad_git,
 			install_cryptpad_npm_dependencies,
 			install_cryptpad_bower_dependencies,
@@ -449,7 +455,7 @@ RECIPE = (
 		sync_websites,
 	},
 	{
-		chown_cryptpad_home_dir,
+		recursively_chown_cryptpad_home_dir,
 		chown_git_home_dir,
 		(
 			# Install certbot
