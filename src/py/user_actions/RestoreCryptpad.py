@@ -1,7 +1,9 @@
 from user_actions.UserAction import UserAction
 from cloud.server.Pool import Pool
 from cloud.vendors.Vultr import Vultr
-from constants import PROJECT_LABEL, CRYPTPAD_BACKUP_DIR, CRYPTPAD_USER_DIR
+from constants import (
+	PROJECT_LABEL, CRYPTPAD_BACKUP_DIR, CRYPTPAD_USER_DIR, CRYPTPAD_USER,
+)
 from util.rsync import rsync
 from os.path import exists
 from os import makedirs
@@ -27,4 +29,5 @@ class RestoreCryptpad(UserAction):
 				CRYPTPAD_BACKUP_DIR,
 				CRYPTPAD_USER_DIR,
 				host=i.main_ip,
+				user=CRYPTPAD_USER,
 			)

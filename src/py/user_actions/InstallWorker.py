@@ -16,7 +16,8 @@ from constants import (
 	DEB_DEPENDENCIES, PACMAN_DEPENDENCIES, WEBHOSTING_DIR, WEBSITES_DIR,
 	NATIVE_SERVICES, NPM_PACKAGES, PIP_PACKAGES, IMPORT_GIT_REPOS,
 	GIT_USER_HOME_DIR, GIT_USER, GIT_SSH_DIR, GIT_SSH_AUTHORISED_KEYS_FILE,
-	ROOT_SSH_AUTHORISED_KEYS_FILE, CHOWN
+	ROOT_SSH_AUTHORISED_KEYS_FILE, CHOWN, CRYPTPAD_SSH_DIR,
+	CRYPTPAD_SSH_AUTHORISED_KEYS_FILE,
 )
 from os import makedirs, walk, chmod, chown, listdir, environ
 from os.path import exists, join, basename
@@ -105,8 +106,18 @@ def create_git_ssh_dir(**_):
 	return True
 
 
+def create_cryptpad_ssh_dir(**_):
+	makedirs(CRYPTPAD_SSH_DIR, mode=0o700)
+	return True
+
+
 def populate_git_ssh_authorized_keys_file(**_):
 	copy(ROOT_SSH_AUTHORISED_KEYS_FILE, GIT_SSH_AUTHORISED_KEYS_FILE)
+	return True
+
+
+def populate_cryptpad_ssh_authorized_keys_file(**_):
+	copy(ROOT_SSH_AUTHORISED_KEYS_FILE, CRYPTPAD_SSH_AUTHORISED_KEYS_FILE)
 	return True
 
 
@@ -422,6 +433,8 @@ RECIPE = (
 			create_cryptpad_group,
 			create_cryptpad_user,
 			create_cryptpad_dir,
+			create_cryptpad_ssh_dir,
+			populate_cryptpad_ssh_authorized_keys_file,
 			chown_cryptpad_dir,
 			clone_cryptpad_git,
 			install_cryptpad_npm_dependencies,

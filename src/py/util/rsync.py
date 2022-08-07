@@ -15,17 +15,18 @@ def rsync(
 	host: Optional[str] = None,
 	reverse: bool = False,
 	delete_extraneous_files: bool = False,
+	user: str = "root",
 ) -> int:
 	if reverse:
 		remote_src_paths = (src_dir,) if type(src_dir) == str else src_dir
 		src_paths = (
-			f"root@{host}:{remote_src_path}"
+			f"{user}@{host}:{remote_src_path}"
 			for remote_src_path in remote_src_paths
 		)
 		dst_path = dst_dir
 	else:
 		src_paths = (src_dir,) if type(src_dir) == str else src_dir
-		dst_path = (f"root@{host}:{dst_dir}" if host else dst_dir)
+		dst_path = (f"{user}@{host}:{dst_dir}" if host else dst_dir)
 	args = [
 		RSYNC,
 		"-Pav",
