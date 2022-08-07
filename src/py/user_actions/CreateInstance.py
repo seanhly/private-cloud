@@ -102,12 +102,13 @@ class CreateInstance(UserAction):
 		print()
 		current_pool.add_all(new_instances)
 		current_pool.dump()
-		CreateInstanceOnIPs(
+		create_instance_on_ips_args = (
 			[
 				IPArgument(new_instance.main_ip)
 				for new_instance in new_instances
 			] + [
-				OptionArgument(f"--{MAIN_IP_OPTION}"), IPArgument(main_ip),
+				OptionArgument(f"--{MAIN_IP_OPTION}"),
+				IPArgument(main_ip),
 			] + (
 				[
 					OptionArgument(f"--{CERTBOT_SUFFIX_OPTION}"),
@@ -115,4 +116,8 @@ class CreateInstance(UserAction):
 				]
 				if certbot_suffix else []
 			)
-		).execute()
+		)
+		for arg in create_instance_on_ips_args:
+			print(arg)
+			print("\t", str(arg))
+		CreateInstanceOnIPs(create_instance_on_ips_args).execute()
