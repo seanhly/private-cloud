@@ -301,6 +301,7 @@ def sync_configs(**kwargs) -> int:
 				src_path = join(src_dir, file)
 				dst_path = join(dst_dir, file)
 				with open(src_path, "r") as src_file:
+					print(dst_path)
 					content = src_file.read()
 					for key, replacement in config_replacements.items():
 						string = f"{{{{{key}}}}}"
