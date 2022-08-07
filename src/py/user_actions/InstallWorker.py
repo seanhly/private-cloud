@@ -6,16 +6,15 @@ from multiprocessing.pool import ThreadPool
 from time import sleep
 from constants import (
 	APT_GET, BOWER, CERTBOT_BINARY, COCKROACH, COCKROACH_BINARY_NAME,
-	COCKROACH_INSTALL_URL, CRYPTPAD_CONFIG_DST, CRYPTPAD_CONFIG_SRC,
-	CRYPTPAD_DIR_PATH, CRYPTPAD_GID, CRYPTPAD_SOURCE, CRYPTPAD_UID,
-	CRYPTPAD_USER, CRYPTPAD_USER_DIR, ETC_REPLACEMENTS, GARAGE_BINARY,
-	GARAGE_INSTALL_URL, GIT, GROUPADD, MAIN_EMAIL, MAIN_HOST, NEW_NPM,
-	OLD_NPM, PIP, PROJECT_SOURCE, GROBID_DIR_PATH, GROBID_SOURCE, PACMAN,
-	PROJECT_CONFIGS_DIR, PROJECT_GIT_DIR, SERVICE, SUDO, SYSTEMCTL, TMP_DIR, UFW,
-	USERADD, WORKING_DIR, SUPPORTED_SUBDOMAINS, KILLALL, DEB_DEPENDENCIES,
-	PACMAN_DEPENDENCIES, WEBHOSTING_DIR, WEBSITES_DIR, NATIVE_SERVICES,
-	NPM_PACKAGES, PIP_PACKAGES, IMPORT_GIT_REPOS, GIT_USER_HOME_DIR,
-	GIT_USER, GIT_SSH_DIR, GIT_SSH_AUTHORISED_KEYS_FILE,
+	COCKROACH_INSTALL_URL, CRYPTPAD_DIR_PATH, CRYPTPAD_GID, CRYPTPAD_SOURCE,
+	CRYPTPAD_UID, CRYPTPAD_USER, CRYPTPAD_USER_DIR, ETC_REPLACEMENTS,
+	GARAGE_BINARY, GARAGE_INSTALL_URL, GIT, GROUPADD, MAIN_EMAIL, MAIN_HOST,
+	NEW_NPM, OLD_NPM, PIP, PROJECT_SOURCE, GROBID_DIR_PATH, GROBID_SOURCE,
+	PACMAN, PROJECT_CONFIGS_DIR, PROJECT_GIT_DIR, SERVICE, SUDO, SYSTEMCTL,
+	TMP_DIR, UFW, USERADD, WORKING_DIR, SUPPORTED_SUBDOMAINS, KILLALL,
+	DEB_DEPENDENCIES, PACMAN_DEPENDENCIES, WEBHOSTING_DIR, WEBSITES_DIR,
+	NATIVE_SERVICES, NPM_PACKAGES, PIP_PACKAGES, IMPORT_GIT_REPOS,
+	GIT_USER_HOME_DIR, GIT_USER, GIT_SSH_DIR, GIT_SSH_AUTHORISED_KEYS_FILE,
 	ROOT_SSH_AUTHORISED_KEYS_FILE, CHOWN
 )
 from os import makedirs, walk, chmod, chown, listdir, environ
@@ -71,7 +70,8 @@ def create_cryptpad_user(**_):
 
 
 def create_cryptpad_dir(**_):
-	makedirs(CRYPTPAD_USER_DIR)
+	if not exists(CRYPTPAD_USER_DIR):
+		makedirs(CRYPTPAD_USER_DIR)
 	return True
 
 
@@ -81,8 +81,10 @@ def chown_cryptpad_dir(**_):
 
 
 def clone_cryptpad_git(**_):
-	git_cmd = (GIT, "clone", CRYPTPAD_SOURCE, CRYPTPAD_DIR_PATH)
-	return call([*CRYPTPAD_SUDO, *git_cmd]) == 0
+	if not exists(CRYPTPAD_DIR_PATH):
+		git_cmd = (GIT, "clone", CRYPTPAD_SOURCE, CRYPTPAD_DIR_PATH)
+		return call([*CRYPTPAD_SUDO, *git_cmd]) == 0
+	return True
 
 
 def install_cryptpad_npm_dependencies(**_):
@@ -91,11 +93,6 @@ def install_cryptpad_npm_dependencies(**_):
 
 def install_cryptpad_bower_dependencies(**_):
 	return call([*CRYPTPAD_SUDO, BOWER, INSTAL], cwd=CRYPTPAD_DIR_PATH) == 0
-
-
-def copy_cryptpad_configs_to_dst(**_):
-	copy(CRYPTPAD_CONFIG_SRC, CRYPTPAD_CONFIG_DST)
-	return True
 
 
 def create_git_user(**_):
@@ -425,7 +422,6 @@ RECIPE = (
 			clone_cryptpad_git,
 			install_cryptpad_npm_dependencies,
 			install_cryptpad_bower_dependencies,
-			copy_cryptpad_configs_to_dst,
 		),
 		download_and_install_cockroach,
 		(

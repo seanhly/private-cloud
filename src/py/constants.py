@@ -100,8 +100,6 @@ PROJECT_CONFIGS_DIR = join(PROJECT_GIT_DIR, "configs")
 HOSTNAME_FILE = "/etc/hostname"
 CRYPTPAD_CONFIG_SRC = join(PROJECT_GIT_DIR, "config/config.js")
 CRYPTPAD_CONFIG_DST = join(CRYPTPAD_DIR_PATH, "config/config.js")
-CRYPTPAD_NGINX_CONFIG_SRC = join(PROJECT_GIT_DIR, "cryptpad.nginx.conf")
-CRYPTPAD_NGINX_CONFIG_DST = join("/etc")
 NAMESERVERS = {
 	"ns1.seanhealy.cyou",
 }
