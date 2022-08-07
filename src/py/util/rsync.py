@@ -16,6 +16,7 @@ def rsync(
 	reverse: bool = False,
 	delete_extraneous_files: bool = False,
 	user: str = "root",
+	chmod: Optional[int] = None,
 ) -> int:
 	if reverse:
 		remote_src_paths = (src_dir,) if type(src_dir) == str else src_dir
@@ -34,6 +35,8 @@ def rsync(
 	]
 	if delete_extraneous_files:
 		args.append("--delete")
+	if chmod:
+		args += ["--chmod", oct(chmod)[2:]]
 	args += src_paths
 	args.append(dst_path)
 	return call(args)

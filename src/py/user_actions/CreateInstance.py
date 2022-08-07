@@ -2,7 +2,7 @@ from subprocess import Popen
 from arguments.IPArgument import IPArgument
 from constants import MAIN_HOST, NAMESERVERS, UPDATE_RAPID_DNS_RECORDS_BINARY
 from user_actions.CreateInstanceOnIPs import (
-	MAIN_IP_OPTION, CreateInstanceOnIPs, CERTBOT_SUFFIX_OPTION
+	MAIN_IP_OPTION, CreateInstanceOnIPs, INPUT_DATA_OPTION
 )
 from user_actions.UserAction import UserAction
 from cloud.server.Instance import Instance
@@ -111,7 +111,7 @@ class CreateInstance(UserAction):
 				IPArgument(main_ip),
 			] + (
 				[
-					OptionArgument(f"--{CERTBOT_SUFFIX_OPTION}"),
+					OptionArgument(f"--{INPUT_DATA_OPTION}"),
 					OtherArgument(certbot_suffix),
 				]
 				if certbot_suffix else []

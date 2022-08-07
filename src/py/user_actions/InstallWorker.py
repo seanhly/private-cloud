@@ -1,4 +1,5 @@
 import time
+from JSON import JSON
 from typing import AnyStr, Tuple, Union, Any
 from user_actions.UserAction import UserAction
 from util.group_exists import group_exists
@@ -28,10 +29,10 @@ from io import BytesIO
 from urllib.request import urlopen, Request
 import tarfile
 from re import sub, findall
-from user_actions.CreateInstanceOnIPs import CERTBOT_SUFFIX_OPTION
 from util.rsync import rsync
 
 
+INPUT_DATA_OPTION = "input-data"
 CRYPTPAD_SUDO = (SUDO, "-u", CRYPTPAD_USER)
 INSTAL = "install"
 
@@ -258,10 +259,12 @@ def allow_80(**_):
 
 def request_ssl_certs(**kwargs):
 	supported_subdomains = list(SUPPORTED_SUBDOMAINS)
-	if CERTBOT_SUFFIX_OPTION in kwargs:
-		supported_subdomains.append(
-			f"certbot-{kwargs[CERTBOT_SUFFIX_OPTION]}"
-		)
+	if INPUT_DATA_OPTION in kwargs:
+		input_data = JSON.loads(kwargs[INPUT_DATA_OPTION])
+		if "certbot_suffix" in input_data:
+			supported_subdomains.append(
+				f"certbot-{input_data['certbot_suffix']}"
+			)
 	comma_separated_domains = ",".join(
 		tuple(
 			f"{subdomain}.{MAIN_HOST}"
@@ -317,10 +320,12 @@ def make_working_dir(**_):
 
 def sync_configs(**kwargs) -> int:
 	config_replacements = dict(ETC_REPLACEMENTS)
-	if CERTBOT_SUFFIX_OPTION in kwargs:
-		config_replacements.update(
-			dict(certbot_suffix=kwargs[CERTBOT_SUFFIX_OPTION])
-		)
+	if INPUT_DATA_OPTION in kwargs:
+		input_data = JSON.loads(kwargs[INPUT_DATA_OPTION])
+		if "certbot_suffix" in input_data:
+			config_replacements.update(
+				dict(certbot_suffix=input_data["certbot_suffix"])
+			)
 	for src_dir, _, files in walk(PROJECT_CONFIGS_DIR):
 		dst_dir = src_dir[len(PROJECT_CONFIGS_DIR):]
 		if files:
@@ -542,10 +547,10 @@ class InstallWorker(UserAction):
 		return "Install worker node software."
 
 	def recognised_options(self):
-		return {CERTBOT_SUFFIX_OPTION}
+		return {INPUT_DATA_OPTION}
 
 	def arg_options(self):
-		return {CERTBOT_SUFFIX_OPTION}
+		return {INPUT_DATA_OPTION}
 
 	def execute(self):
 		self.pool = ThreadPool(processes=4)

@@ -30,4 +30,5 @@ class RestoreCryptpad(UserAction):
 				CRYPTPAD_USER_DIR,
 				host=i.main_ip,
 				user=CRYPTPAD_USER,
+				chmod=0o777
 			)

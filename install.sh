@@ -1,7 +1,7 @@
 if [ -t 0 ]; then
-	certbot_suffix=""
+	input_data=""
 else
-  read -r certbot_suffix
+  read -r input_data
 fi
 label=private-cloud
 echo "Clone repository..."
@@ -9,8 +9,8 @@ echo "Clone repository..."
 echo "Make..."
 (cd /$label && make install-prod)
 echo "Install and start..."
-if [ "$certbot_suffix" ]; then
-    $label install --certbot-suffix "$certbot_suffix"
+if [ "$input_data" ]; then
+    $label install --input-data "$input_data"
 else
     $label install
 fi

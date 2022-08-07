@@ -1,3 +1,4 @@
+from JSON import JSON
 from subprocess import Popen
 from user_actions.StartMainWorker import StartMainWorker
 from user_actions.StartWorker import StartWorker
@@ -57,9 +58,23 @@ class CreateInstanceOnIPs(UserAction):
 		previous_instance_ips = {i.main_ip for i in previous_instances}
 		threads: List[Popen] = []
 		# Bootstrap a system onto each worker.
-		for new_ip in new_instance_ips:
-			kwargs = dict(stdin=certbot_suffix) if certbot_suffix else {}
-			threads.append(ssh_do(new_ip, BOOTSTRAP_SCRIPT, **kwargs))
+		for new_instance in new_instances:
+			new_ip = new_instance.main_ip
+			ip = new_instance.main_ip
+			input_data = dict(
+				ip=new_instance.main_ip,
+				region=new_instance.region,
+				network=(
+					previous_instance_ips
+						.union(new_instance_ips)
+						.difference({ip})
+				),
+			)
+			if certbot_suffix:
+				input_data["certbot_suffix"] = certbot_suffix
+			threads.append(
+				ssh_do(new_ip, BOOTSTRAP_SCRIPT, stdin=JSON.dumps(input_data))
+			)
 		wait_then_clear(threads)
 		# New workers can now reach pre-existing workers.
 		# <---|
