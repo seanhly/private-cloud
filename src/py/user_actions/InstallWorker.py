@@ -1,3 +1,4 @@
+import time
 from typing import AnyStr, Tuple, Union, Any
 from user_actions.UserAction import UserAction
 from util.group_exists import group_exists
@@ -242,10 +243,16 @@ def request_ssl_certs(**kwargs):
 			for subdomain in supported_subdomains
 		) + (MAIN_HOST,)
 	)
-	return call([
-		CERTBOT_BINARY, "--nginx", "--agree-tos", "-m", MAIN_EMAIL,
-		"--non-interactive", "-d", comma_separated_domains,
-	]) == 0
+	# Attempt five times.
+	for _ in range(5):
+		result = call([
+			CERTBOT_BINARY, "--nginx", "--agree-tos", "-m", MAIN_EMAIL,
+			"--non-interactive", "-d", comma_separated_domains,
+		])
+		if result == 0:
+			return True
+		time.sleep(3)
+	return False
 
 
 def disallow_80(**_):
@@ -298,7 +305,6 @@ def sync_configs(**kwargs) -> int:
 				src_path = join(src_dir, file)
 				dst_path = join(dst_dir, file)
 				with open(src_path, "r") as src_file:
-					print(dst_path)
 					content = src_file.read()
 					for key, replacement in config_replacements.items():
 						string = f"{{{{{key}}}}}"
