@@ -513,7 +513,8 @@ class InstallWorker(UserAction):
 
 	def execute(self):
 		self.pool = ThreadPool(processes=4)
-		#breadcrumbs = self.begin_installation(RECIPE)
+		breadcrumbs = self.begin_installation(RECIPE)
+		"""
 		breadcrumbs = self.begin_installation((
 			temporarily_clone_git_repos,
 			create_empty_git_repos_locally,
@@ -522,4 +523,5 @@ class InstallWorker(UserAction):
 			remove_temporary_local_git_repos,
 			set_git_home_dir_permissions,
 		))
+		"""
 		print(breadcrumbs)
