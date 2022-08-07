@@ -514,8 +514,5 @@ class InstallWorker(UserAction):
 
 	def execute(self):
 		self.pool = ThreadPool(processes=4)
-		#breadcrumbs = self.begin_installation(RECIPE)
-		breadcrumbs = self.begin_installation((
-			sync_configs,
-		))
+		breadcrumbs = self.begin_installation(RECIPE)
 		print(breadcrumbs)
