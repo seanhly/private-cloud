@@ -11,7 +11,7 @@ from constants import (
 	CRYPTPAD_USER, CRYPTPAD_USER_DIR, ETC_REPLACEMENTS, GARAGE_BINARY,
 	GARAGE_INSTALL_URL, GIT, GROUPADD, MAIN_EMAIL, MAIN_HOST, NEW_NPM,
 	OLD_NPM, PIP, PROJECT_SOURCE, GROBID_DIR_PATH, GROBID_SOURCE, PACMAN,
-	PROJECT_ETC_DIR, PROJECT_GIT_DIR, SERVICE, SUDO, SYSTEMCTL, TMP_DIR, UFW,
+	PROJECT_CONFIGS_DIR, PROJECT_GIT_DIR, SERVICE, SUDO, SYSTEMCTL, TMP_DIR, UFW,
 	USERADD, WORKING_DIR, SUPPORTED_SUBDOMAINS, KILLALL, DEB_DEPENDENCIES,
 	PACMAN_DEPENDENCIES, WEBHOSTING_DIR, WEBSITES_DIR, NATIVE_SERVICES,
 	NPM_PACKAGES, PIP_PACKAGES, IMPORT_GIT_REPOS, GIT_USER_HOME_DIR,
@@ -122,7 +122,46 @@ def create_git_user_home_dir(**_):
 	return True
 
 
-def import_git_repos(**_):
+def temporarily_clone_git_repos(**_):
+	for repo_url in IMPORT_GIT_REPOS:
+		cloned_path = join(GIT_USER_HOME_DIR, f"tmp_{basename(repo_url)}")
+		result = call([GIT, "clone", repo_url, cloned_path])
+		if result != 0:
+			return False
+	return True
+
+
+def set_cloned_git_urls_to_local_dir(**_):
+	for repo_url in IMPORT_GIT_REPOS:
+		cloned_path = join(GIT_USER_HOME_DIR, f"tmp_{basename(repo_url)}")
+		git_config_path = join(cloned_path, ".git/config")
+		local_repo_name = basename(repo_url)
+		if not local_repo_name.lower().endswith(".git"):
+			local_repo_name += ".git"
+		local_repo_path = join(GIT_USER_HOME_DIR, local_repo_name)
+		with open(git_config_path, "r") as f:
+			modified = f.read().replace(repo_url, f"file://{local_repo_path}")
+		with open(git_config_path, "w") as f:
+			f.write(modified)
+	return True
+
+
+def git_push_to_local_bare_repos(**_):
+	for repo_url in IMPORT_GIT_REPOS:
+		cloned_path = join(GIT_USER_HOME_DIR, f"tmp_{basename(repo_url)}")
+		if call([GIT, "push"], cwd=cloned_path) != 0:
+			return False
+	return True
+
+
+def remove_temporary_local_git_repos(**_):
+	for repo_url in IMPORT_GIT_REPOS:
+		cloned_path = join(GIT_USER_HOME_DIR, f"tmp_{basename(repo_url)}")
+		rmtree(cloned_path)
+	return True
+
+
+def create_empty_git_repos_locally(**_):
 	for repo_url in IMPORT_GIT_REPOS:
 		repo_canonical_name = basename(repo_url)
 		if not repo_canonical_name.lower().endswith(".git"):
@@ -134,7 +173,15 @@ def import_git_repos(**_):
 		if creating_dir or not exists(join(local_repo_path, "HEAD")):
 			# TODO make this async.  Populate the recipe with lists
 			# of dynamically created functions.
-			result = call([GIT, "init", "--bare", local_repo_path])
+			result = call(
+				[
+					GIT,
+					"init",
+					"--bare",
+					"--initial-branch=main",
+					local_repo_path
+				]
+			)
 			print(repo_canonical_name, result)
 			if result != 0:
 				return False
@@ -193,8 +240,10 @@ def request_ssl_certs(**kwargs):
 			f"certbot-{kwargs[CERTBOT_SUFFIX_OPTION]}"
 		)
 	comma_separated_domains = ",".join(
-		f"{subdomain}.{MAIN_HOST}"
-		for subdomain in supported_subdomains
+		tuple(
+			f"{subdomain}.{MAIN_HOST}"
+			for subdomain in supported_subdomains
+		) + (MAIN_HOST,)
 	)
 	return call([
 		CERTBOT_BINARY, "--nginx", "--agree-tos", "-m", MAIN_EMAIL,
@@ -237,13 +286,13 @@ def make_working_dir(**_):
 	return True
 
 
-def sync_etc(**kwargs) -> int:
-	etc_replacements = dict(ETC_REPLACEMENTS)
+def sync_configs(**kwargs) -> int:
+	config_replacements = dict(ETC_REPLACEMENTS)
 	if CERTBOT_SUFFIX_OPTION in kwargs:
-		etc_replacements.update(
+		config_replacements.update(
 			dict(certbot_suffix=kwargs[CERTBOT_SUFFIX_OPTION])
 		)
-	for src_dir, _, files in walk(PROJECT_ETC_DIR):
+	for src_dir, _, files in walk(PROJECT_CONFIGS_DIR):
 		dst_dir = src_dir[len(PROJECT_GIT_DIR):]
 		if files:
 			if not exists(dst_dir):
@@ -253,11 +302,9 @@ def sync_etc(**kwargs) -> int:
 				dst_path = join(dst_dir, file)
 				with open(src_path, "r") as src_file:
 					content = src_file.read()
-					for key, replacement in etc_replacements.items():
+					for key, replacement in config_replacements.items():
 						string = f"{{{{{key}}}}}"
-						content = (
-							content.replace(string, replacement)
-						)
+						content = content.replace(string, str(replacement))
 				with open(dst_path, "w") as dst_file:
 					dst_file.write(content)
 	return True
@@ -325,6 +372,14 @@ def allow_https(**_):
 	return call([UFW, "allow", "443"]) == 0
 
 
+def allow_git_port(**_):
+	return call([UFW, "allow", "9418"]) == 0
+
+
+def allow_smtp_port(**_):
+	return call([UFW, "allow", "9418"]) == 0
+
+
 RECIPE = (
 	{
 		install_linux_packages,
@@ -340,13 +395,19 @@ RECIPE = (
 			create_git_user_home_dir,
 			create_git_ssh_dir,
 			populate_git_ssh_authorized_keys_file,
-			import_git_repos,
+			temporarily_clone_git_repos,
+			create_empty_git_repos_locally,
+			set_cloned_git_urls_to_local_dir,
+			git_push_to_local_bare_repos,
+			remove_temporary_local_git_repos,
 			set_git_home_dir_permissions,
+			allow_git_port,
+			allow_smtp_port,
 		)
 	},
 	{
 		enable_systemd_services,
-		sync_etc,
+		sync_configs,
 		make_working_dir,
 		sync_websites,
 	},
@@ -452,5 +513,13 @@ class InstallWorker(UserAction):
 
 	def execute(self):
 		self.pool = ThreadPool(processes=4)
-		breadcrumbs = self.begin_installation(RECIPE)
+		#breadcrumbs = self.begin_installation(RECIPE)
+		breadcrumbs = self.begin_installation((
+			temporarily_clone_git_repos,
+			create_empty_git_repos_locally,
+			set_cloned_git_urls_to_local_dir,
+			git_push_to_local_bare_repos,
+			remove_temporary_local_git_repos,
+			set_git_home_dir_permissions,
+		))
 		print(breadcrumbs)

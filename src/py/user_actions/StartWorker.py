@@ -3,16 +3,14 @@ from user_actions.ConnectGarageWorkers import ConnectGarageWorkers
 from user_actions.UserAction import UserAction
 from constants import (
 	COCKROACH, COCKROACH_BINARY_NAME, COCKROACH_PORT, COCKROACH_WEB_PORT,
-	CRYPTPAD_DIR_PATH, CRYPTPAD_SOURCE, CRYPTPAD_USER, GARAGE_BINARY,
-	GARAGE_BINARY_NAME, GROBID_DIR_PATH, GROBID_EXEC_PATH, SUDO,
-	TMUX_BINARY,
+	GARAGE_BINARY, GARAGE_BINARY_NAME, GROBID_DIR_PATH, GROBID_EXEC_PATH,
+	SUDO, TMUX_BINARY,
 )
 from subprocess import Popen, call
 from util.redis_utils import get_public_ipv4
 from util.wait_then_clear import wait_then_clear
 from util.are_ports_online import are_ports_online
 import time
-from os.path import basename
 
 
 class StartWorker(UserAction):
@@ -73,7 +71,7 @@ class StartWorker(UserAction):
 					cockroach_cmd = (
 						f"{COCKROACH} start {common_cockroach_args} --join={join_ips}"
 					)
-		services: Dict[str, Tuple[Optional[str], str]] = {
+		services: Dict[str, Tuple[Optional[str], Optional[str], str]] = {
 			"grobid": (
 				GROBID_DIR_PATH,
 				None,
