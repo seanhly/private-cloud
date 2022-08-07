@@ -7,7 +7,7 @@ label=private-cloud
 echo "Clone repository..."
 /usr/bin/git clone https://github.com/seanhly/$label /$label
 echo "Make..."
-(cd /$label && make install)
+(cd /$label && make install-prod)
 echo "Install and start..."
 if [ "$certbot_suffix" ]; then
     $label install --certbot-suffix "$certbot_suffix"
