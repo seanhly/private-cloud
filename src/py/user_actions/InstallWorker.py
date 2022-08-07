@@ -405,9 +405,7 @@ RECIPE = (
 	},
 	{
 		enable_systemd_services,
-		sync_configs,
 		make_working_dir,
-		sync_websites,
 	},
 	{
 		(
@@ -428,15 +426,19 @@ RECIPE = (
 			download_garage_binary,
 			allow_garage_binary_execution,
 		),
-		(
-			# Install certbot
-			stop_nginx,
-			allow_80,
-			request_ssl_certs,
-			disallow_80,
-			kill_certbot_nginx_worker,
-		)
 	},
+	{
+		sync_configs,
+		sync_websites,
+	},
+	(
+		# Install certbot
+		stop_nginx,
+		allow_80,
+		request_ssl_certs,
+		disallow_80,
+		kill_certbot_nginx_worker,
+	),
 	# Restart services
 	restart_systemd_services,
 )
