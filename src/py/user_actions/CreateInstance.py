@@ -113,8 +113,7 @@ class CreateInstance(UserAction):
 				[
 					OptionArgument(f"--{CERTBOT_SUFFIX_OPTION}"),
 					OtherArgument(certbot_suffix),
-				]
-				if certbot_suffix else []
+				] if certbot_suffix else []
 			)
 		)
 		CreateInstanceOnIPs(create_instance_on_ips_args).execute()

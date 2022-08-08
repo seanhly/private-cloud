@@ -32,6 +32,7 @@ from re import sub, findall
 from util.rsync import rsync
 from user_actions.StartMainWorker import StartMainWorker
 from user_actions.StartWorker import StartWorker
+from user_actions.CreateInstance import CERTBOT_SUFFIX_OPTION
 
 
 INPUT_DATA_OPTION = "input-data"
@@ -263,9 +264,9 @@ def request_ssl_certs(**kwargs):
 	supported_subdomains = list(SUPPORTED_SUBDOMAINS)
 	if INPUT_DATA_OPTION in kwargs:
 		input_data = JSON.loads(kwargs[INPUT_DATA_OPTION])
-		if "certbot_suffix" in input_data:
+		if CERTBOT_SUFFIX_OPTION in input_data:
 			supported_subdomains.append(
-				f"certbot-{input_data['certbot_suffix']}"
+				f"certbot-{input_data[CERTBOT_SUFFIX_OPTION]}"
 			)
 	comma_separated_domains = ",".join(
 		tuple(
@@ -324,9 +325,9 @@ def sync_configs(**kwargs) -> int:
 	config_replacements = dict(ETC_REPLACEMENTS)
 	if INPUT_DATA_OPTION in kwargs:
 		input_data = JSON.loads(kwargs[INPUT_DATA_OPTION])
-		if "certbot_suffix" in input_data:
+		if CERTBOT_SUFFIX_OPTION in input_data:
 			config_replacements.update(
-				dict(certbot_suffix=input_data["certbot_suffix"])
+				dict(certbot_suffix=input_data[CERTBOT_SUFFIX_OPTION])
 			)
 	for src_dir, _, files in walk(PROJECT_CONFIGS_DIR):
 		dst_dir = src_dir[len(PROJECT_CONFIGS_DIR):]
