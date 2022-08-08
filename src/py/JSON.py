@@ -23,7 +23,7 @@ class JSON:
 		return dumps(obj, **COMPACT_DUMP_ARGS)
 
 	@classmethod
-	def dumps(cls, obj: Any, fp, indent: bool = True):
+	def dump(cls, obj: Any, fp, indent: bool = True):
 		if indent:
 			return dump(obj, fp, **INDENTED_DUMP_ARGS)
 		return dump(obj, fp, **COMPACT_DUMP_ARGS)
