@@ -1,10 +1,19 @@
-from json import dump, dumps, load, loads
+from json import dump, dumps, load, loads, JSONEncoder
 from typing import Any
+
+
+class SetEncoder(JSONEncoder):
+	def default(self, obj):
+		if isinstance(obj, set):
+			return list(obj)
+		return JSONEncoder.default(self, obj)
+
 
 DUMP_ARGS = dict(
 	separators=(",", ":"),
 	sort_keys=True,
 	indent="\t",
+	cls=SetEncoder,
 )
 
 
