@@ -419,6 +419,17 @@ def allow_smtp_port(**_):
 
 def extend_network(**kwargs):
 	if INPUT_DATA_OPTION in kwargs:
+		print(kwargs[INPUT_DATA_OPTION])
+		print(kwargs[INPUT_DATA_OPTION])
+		print(kwargs[INPUT_DATA_OPTION])
+		print(kwargs[INPUT_DATA_OPTION])
+		print(kwargs[INPUT_DATA_OPTION])
+		print(kwargs[INPUT_DATA_OPTION])
+		print(kwargs[INPUT_DATA_OPTION])
+		print(kwargs[INPUT_DATA_OPTION])
+		print(kwargs[INPUT_DATA_OPTION])
+		print(kwargs[INPUT_DATA_OPTION])
+		print(kwargs[INPUT_DATA_OPTION])
 		input_data = JSON.loads(kwargs[INPUT_DATA_OPTION])
 		from redis import Redis
 		network_redis = Redis(db=REDIS_WORKER_NETWORK_DB)
