@@ -174,6 +174,7 @@ CRYPTPAD_LOG_PATH = join(CRYPTPAD_DATA_PATH, "logs")
 
 ETC_REPLACEMENTS = {
 	"main_host": MAIN_HOST,
+	"main_email": MAIN_EMAIL,
 	"websites_dir": "/srv",
 	"php_plugin": PHP_PLUGIN,
 	# This makes it easier for people (mainly me) to connect to my git daemon.

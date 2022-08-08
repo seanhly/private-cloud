@@ -25,4 +25,5 @@ module.exports = {
 	logFeedback: false,
 	verbose: false,
 	installMethod: 'unspecified',
+	admin_email: '{{main_email}}',
 };
