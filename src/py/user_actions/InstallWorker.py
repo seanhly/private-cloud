@@ -209,7 +209,6 @@ def create_empty_git_repos_locally(**_):
 					local_repo_path
 				]
 			)
-			print(repo_canonical_name, result)
 			if result != 0:
 				return False
 	return True
@@ -424,10 +423,11 @@ def extend_network(**kwargs):
 		network_redis = Redis(db=REDIS_WORKER_NETWORK_DB)
 		if "network" in input_data:
 			network = input_data["network"]
-			for ip in network:
-				if call([UFW, "allow", "from", ip]) != 0:
-					return False
-			network_redis.sadd("network", *network)
+			if network:
+				for ip in network:
+					if call([UFW, "allow", "from", ip]) != 0:
+						return False
+				network_redis.sadd("network", *network)
 		if "region" in input_data:
 			network_redis.set("region", input_data["region"])
 		if "public_ipv4" in input_data:
