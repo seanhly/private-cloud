@@ -10,9 +10,17 @@ class SetEncoder(JSONEncoder):
 
 
 INDENTED_DUMP_ARGS = dict(
-	separators=(",", ":"), sort_keys=True, indent="\t", cls=SetEncoder,
+	separators=(", ", ": "),
+	sort_keys=True,
+	indent="\t",
+	cls=SetEncoder,
 )
-COMPACT_DUMP_ARGS = dict(sort_keys=True, cls=SetEncoder)
+COMPACT_DUMP_ARGS = dict(
+	separators=(",", ":"),
+	sort_keys=True,
+	indent=None,
+	cls=SetEncoder,
+)
 
 
 class JSON:
