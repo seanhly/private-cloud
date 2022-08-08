@@ -1,16 +1,12 @@
 from JSON import JSON
 from subprocess import Popen
-from user_actions.StartMainWorker import StartMainWorker
-from user_actions.StartWorker import StartWorker
 from user_actions.UserAction import UserAction
 from cloud.server.Pool import Pool
 from cloud.vendors.Vultr import Vultr
-from constants import UFW
 from typing import List
 from constants import BOOTSTRAP_SCRIPT
 from util.ssh_do import ssh_do
-from util.wait_then_clear import wait_then_clear
-from util.redis_utils import extend_network, set_region_and_public_ipv4
+from util.redis_utils import extend_network
 
 
 MAIN_IP_OPTION = "main-ip"
