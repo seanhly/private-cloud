@@ -9,22 +9,24 @@ class SetEncoder(JSONEncoder):
 		return JSONEncoder.default(self, obj)
 
 
-DUMP_ARGS = dict(
-	separators=(",", ":"),
-	sort_keys=True,
-	indent="\t",
-	cls=SetEncoder,
+INDENTED_DUMP_ARGS = dict(
+	separators=(",", ":"), sort_keys=True, indent="\t", cls=SetEncoder,
 )
+COMPACT_DUMP_ARGS = dict(sort_keys=True, cls=SetEncoder)
 
 
 class JSON:
 	@classmethod
-	def dumps(cls, obj: Any):
-		return dumps(obj, **DUMP_ARGS)
+	def dumps(cls, obj: Any, indent: bool = True):
+		if indent:
+			return dumps(obj, **INDENTED_DUMP_ARGS)
+		return dumps(obj, **COMPACT_DUMP_ARGS)
 
 	@classmethod
-	def dump(cls, obj: Any, fp):
-		return dump(obj, fp, **DUMP_ARGS)
+	def dumps(cls, obj: Any, fp, indent: bool = True):
+		if indent:
+			return dump(obj, fp, **INDENTED_DUMP_ARGS)
+		return dump(obj, fp, **COMPACT_DUMP_ARGS)
 
 	@classmethod
 	def loads(cls, content: str):

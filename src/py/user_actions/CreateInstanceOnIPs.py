@@ -72,5 +72,9 @@ class CreateInstanceOnIPs(UserAction):
 			if certbot_suffix:
 				input_data[CERTBOT_SUFFIX_OPTION] = certbot_suffix
 			threads.append(
-				ssh_do(new_ip, BOOTSTRAP_SCRIPT, stdin=JSON.dumps(input_data))
+				ssh_do(
+					new_ip,
+					BOOTSTRAP_SCRIPT,
+					stdin=JSON.dumps(input_data, indent=False),
+				)
 			)
