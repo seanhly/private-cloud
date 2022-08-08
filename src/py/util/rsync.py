@@ -39,4 +39,5 @@ def rsync(
 		args += ["--chmod", oct(chmod)[2:]]
 	args += src_paths
 	args.append(dst_path)
+	print(" ".join(args))
 	return call(args)

@@ -1,3 +1,6 @@
+from user_actions.StartWorker import StartWorker
+from user_actions.StartMainWorker import StartMainWorker
+from redis import Redis
 import time
 from JSON import JSON
 from typing import AnyStr, Tuple, Union, Any
@@ -18,7 +21,7 @@ from constants import (
 	NATIVE_SERVICES, NPM_PACKAGES, PIP_PACKAGES, IMPORT_GIT_REPOS,
 	GIT_USER_HOME_DIR, GIT_USER, GIT_SSH_DIR, GIT_SSH_AUTHORISED_KEYS_FILE,
 	ROOT_SSH_AUTHORISED_KEYS_FILE, CHOWN, CRYPTPAD_SSH_DIR,
-	CRYPTPAD_SSH_AUTHORISED_KEYS_FILE,
+	CRYPTPAD_SSH_AUTHORISED_KEYS_FILE, REDIS_WORKER_NETWORK_DB,
 )
 from os import makedirs, walk, chmod, chown, listdir, environ
 from os.path import exists, join, basename
@@ -414,12 +417,40 @@ def allow_smtp_port(**_):
 	return call([UFW, "allow", "9418"]) == 0
 
 
+def extend_network(**kwargs):
+	if INPUT_DATA_OPTION in kwargs:
+		input_data = JSON.loads(kwargs[INPUT_DATA_OPTION])
+		network_redis = Redis(db=REDIS_WORKER_NETWORK_DB)
+		if "network" in input_data:
+			network = input_data["network"]
+			for ip in network:
+				if call([UFW, "allow", "from", ip]) != 0:
+					return False
+			network_redis.sadd("network", *network)
+		if "region" in input_data:
+			network_redis.set("region", input_data["region"])
+		if "public_ipv4" in input_data:
+			network_redis.set("public-ipv4", input_data["public_ipv4"])
+	return True
+
+
+def start_worker(**kwargs):
+	if INPUT_DATA_OPTION in kwargs:
+		input_data = JSON.loads(kwargs[INPUT_DATA_OPTION])
+		if "is_main" in input_data and input_data["is_main"]:
+			StartMainWorker().start()
+		else:
+			StartWorker().start()
+	return True
+
+
 RECIPE = (
 	{
 		install_linux_packages,
 		allow_access_from_ssh_client,
 		allow_https,
 	},
+	extend_network,
 	{
 		install_pip_packages,
 		install_npm_packages,
@@ -483,6 +514,7 @@ RECIPE = (
 	},
 	# Restart services
 	restart_systemd_services,
+	start_worker,
 )
 
 

@@ -56,66 +56,25 @@ class CreateInstanceOnIPs(UserAction):
 			if instance.main_ip not in new_instance_ips
 		]
 		previous_instance_ips = {i.main_ip for i in previous_instances}
+		# Pre-existing workers can now reach new workers.
+		extend_network(previous_instance_ips, new_instance_ips)
 		threads: List[Popen] = []
 		# Bootstrap a system onto each worker.
 		for new_instance in new_instances:
 			new_ip = new_instance.main_ip
 			ip = new_instance.main_ip
 			input_data = dict(
-				ip=new_instance.main_ip,
+				public_ipv4=new_instance.main_ip,
 				region=new_instance.region,
 				network=(
 					previous_instance_ips
 						.union(new_instance_ips)
 						.difference({ip})
 				),
+				is_main=(new_ip == main_ip),
 			)
 			if certbot_suffix:
 				input_data["certbot_suffix"] = certbot_suffix
 			threads.append(
 				ssh_do(new_ip, BOOTSTRAP_SCRIPT, stdin=JSON.dumps(input_data))
 			)
-		wait_then_clear(threads)
-		# New workers can now reach pre-existing workers.
-		# <---|
-		for previous_ip in previous_instance_ips:
-			ssh_do(previous_ip, (
-				f"{UFW} allow from {new_ip}"
-				for new_ip in new_instance_ips
-			), threads)
-		# Pre-existing workers can now reach new workers and each other.
-		# a) |--->
-		# b) | <-->
-		for previous_ip in previous_instance_ips:
-			threads.append(
-				extend_network(previous_ip, new_instance_ips, True)
-			)
-		for new_ip in new_instance_ips:
-			ssh_do(new_ip, (
-				f"{UFW} allow from {other_ip}"
-				for other_ip in previous_instance_ips.union(new_instance_ips)
-			), threads)
-		for new_ip in new_instance_ips:
-			threads.append(
-				extend_network(
-					new_ip,
-					previous_instance_ips.union(new_instance_ips),
-					True,
-				)
-			)
-		for new_instance in new_instances:
-			threads.append(
-				set_region_and_public_ipv4(
-					new_instance.main_ip,
-					new_instance.region,
-					new_instance.main_ip,
-				)
-			)
-		wait_then_clear(threads)
-		# Run each worker.
-		for new_ip in new_instance_ips:
-			if new_ip == main_ip:
-				threads.append(StartMainWorker.run_on_host(new_ip))
-			else:
-				threads.append(StartWorker.run_on_host(new_ip))
-		wait_then_clear(threads)
