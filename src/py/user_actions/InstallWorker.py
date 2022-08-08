@@ -1,6 +1,3 @@
-from user_actions.StartWorker import StartWorker
-from user_actions.StartMainWorker import StartMainWorker
-from redis import Redis
 import time
 from JSON import JSON
 from typing import AnyStr, Tuple, Union, Any
@@ -33,6 +30,8 @@ from urllib.request import urlopen, Request
 import tarfile
 from re import sub, findall
 from util.rsync import rsync
+from user_actions.StartMainWorker import StartMainWorker
+from user_actions.StartWorker import StartWorker
 
 
 INPUT_DATA_OPTION = "input-data"
@@ -420,6 +419,7 @@ def allow_smtp_port(**_):
 def extend_network(**kwargs):
 	if INPUT_DATA_OPTION in kwargs:
 		input_data = JSON.loads(kwargs[INPUT_DATA_OPTION])
+		from redis import Redis
 		network_redis = Redis(db=REDIS_WORKER_NETWORK_DB)
 		if "network" in input_data:
 			network = input_data["network"]
@@ -450,7 +450,6 @@ RECIPE = (
 		allow_access_from_ssh_client,
 		allow_https,
 	},
-	extend_network,
 	{
 		install_pip_packages,
 		install_npm_packages,
@@ -470,6 +469,7 @@ RECIPE = (
 		)
 	},
 	{
+		extend_network,
 		enable_systemd_services,
 		make_working_dir,
 	},
