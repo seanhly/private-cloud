@@ -54,6 +54,14 @@ class Vultr(Vendor):
 			return (entity(inner, cls) for inner in inner_json)
 
 	@classmethod
+	def reboot(cls, the_id: str = None):
+		from requests import post
+		return post(
+			f"https://api.vultr.com/v2/instances/{the_id}/reboot",
+			headers={"Authorization": f"Bearer {VULTR_TOKEN}"}
+		).content.decode()
+
+	@classmethod
 	def list_regions(cls):
 		return list(cls.get(Region, "region"))
 
@@ -104,7 +112,9 @@ class Vultr(Vendor):
 		return list(cls.get(SSHKey, "ssh-key"))
 
 	@classmethod
-	def list_instances(cls, label: str = "phd") -> List[Instance]:
+	def list_instances(
+		cls, label: Optional[str] = PROJECT_LABEL
+	) -> List[Instance]:
 		return [
 			i
 			for i in cls.get(Instance, "instance")

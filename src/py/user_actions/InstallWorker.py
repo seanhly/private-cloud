@@ -139,7 +139,7 @@ def populate_cryptpad_ssh_authorized_keys_file(**_):
 	return True
 
 
-def chown_git_home_dir(**_):
+def recursively_chown_git_home_dir(**_):
 	user_and_group = f"{GIT_USER}:{GIT_USER}"
 	return call([CHOWN, "-R", user_and_group, GIT_USER_HOME_DIR]) == 0
 
@@ -255,8 +255,10 @@ def stop_nginx(**_):
 	return call([SERVICE, "nginx", "stop"]) == 0
 
 
-def allow_80(**_):
-	return call([UFW, "allow", "80"]) == 0
+def allow(port):
+	def allow_port(**_):
+		return call([UFW, "allow", str(port)]) == 0
+	return allow_port
 
 
 def request_ssl_certs(**kwargs):
@@ -285,25 +287,27 @@ def request_ssl_certs(**kwargs):
 	return False
 
 
-def disallow_80(**_):
-	for ufw_id in reversed(
-		sorted(
-			int(i)
-			for i in findall(
-				"(?:^|\n)\\[\\s*(\\d+)]\\s*80\\s*",
-				check_output([UFW, "status", "numbered"]).decode(),
+def disallow(port):
+	def disallow_port(**_):
+		for ufw_id in reversed(
+			sorted(
+				int(i)
+				for i in findall(
+					f"(?:^|\n)\\[\\s*(\\d+)]\\s*{port}\\s*",
+					check_output([UFW, "status", "numbered"]).decode(),
+				)
 			)
-		)
-	):
-		p = Popen(
-			[UFW, "delete", str(ufw_id)],
-			stdin=PIPE,
-		)
-		text: AnyStr = bytes("y\n", encoding="utf8")
-		p.stdin.write(text)
-		p.stdin.close()
-		p.wait()
-	return True
+		):
+			p = Popen(
+				[UFW, "delete", str(ufw_id)],
+				stdin=PIPE,
+			)
+			text: AnyStr = bytes("y\n", encoding="utf8")
+			p.stdin.write(text)
+			p.stdin.close()
+			p.wait()
+		return True
+	return disallow_port
 
 
 def kill_certbot_nginx_worker(**_):
@@ -404,18 +408,6 @@ def allow_access_from_ssh_client(**_):
 	return call([UFW, "allow", "from", place]) == 0
 
 
-def allow_https(**_):
-	return call([UFW, "allow", "443"]) == 0
-
-
-def allow_git_port(**_):
-	return call([UFW, "allow", "9418"]) == 0
-
-
-def allow_smtp_port(**_):
-	return call([UFW, "allow", "9418"]) == 0
-
-
 def extend_network(**kwargs):
 	if INPUT_DATA_OPTION in kwargs:
 		input_data = JSON.loads(kwargs[INPUT_DATA_OPTION])
@@ -449,12 +441,16 @@ RECIPE = (
 	{
 		install_linux_packages,
 		allow_access_from_ssh_client,
-		allow_https,
+		make_working_dir,
 	},
 	{
 		install_pip_packages,
 		install_npm_packages,
 		clone_project_git,
+		enable_systemd_services,
+	},
+	{
+		extend_network,
 		(
 			create_git_user,
 			create_git_user_home_dir,
@@ -465,16 +461,9 @@ RECIPE = (
 			set_cloned_git_urls_to_local_dir,
 			git_push_to_local_bare_repos,
 			remove_temporary_local_git_repos,
-			allow_git_port,
-			allow_smtp_port,
-		)
-	},
-	{
-		extend_network,
-		enable_systemd_services,
-		make_working_dir,
-	},
-	{
+			allow(587),
+			allow(9418),
+		),
 		(
 			download_and_extract_grobid,
 			allow_executing_grobid,
@@ -496,21 +485,20 @@ RECIPE = (
 			download_garage_binary,
 			allow_garage_binary_execution,
 		),
-	},
-	{
-		sync_configs,
 		sync_websites,
 	},
+	sync_configs,
 	{
 		recursively_chown_cryptpad_home_dir,
-		chown_git_home_dir,
+		recursively_chown_git_home_dir,
 		(
 			# Install certbot
 			stop_nginx,
-			allow_80,
+			allow(80),
 			request_ssl_certs,
-			disallow_80,
+			disallow(80),
 			kill_certbot_nginx_worker,
+			allow(443),
 		),
 	},
 	# Restart services

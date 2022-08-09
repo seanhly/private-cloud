@@ -1,8 +1,6 @@
 from typing import Dict, Set
 from user_actions.UserAction import UserAction
 from cloud.vendors.Vultr import Vultr
-from constants import PROJECT_LABEL
-import random
 from util.ssh_do import ssh_do
 
 
@@ -17,7 +15,7 @@ class NetworkDiskCapacity(UserAction):
 
 	def execute(self) -> None:
 		vendor = Vultr
-		instances = vendor.list_instances(label=PROJECT_LABEL)
+		instances = vendor.list_instances()
 		instance_ips: Set[str] = set(
 			i.main_ip for i in instances
 		)

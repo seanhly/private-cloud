@@ -1,4 +1,5 @@
 from threading import Thread
+from typing import Any
 
 
 class ThreadWithReturnValue(Thread):
@@ -11,6 +12,7 @@ class ThreadWithReturnValue(Thread):
 		self._return = None
 
 	def run(self):
+		self: Any
 		if self._Thread__target is not None:
 			self._return = self._Thread__target(
 				*self._Thread__args,

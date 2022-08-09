@@ -22,7 +22,7 @@ class Pool(Entity):
 			with open(PROJECT_POOL, "r") as f:
 				pool = [Instance(i, vendor) for i in JSON.load(f)]
 		if not pool:
-			pool = vendor.list_instances(label="phd")
+			pool = vendor.list_instances()
 			with open(PROJECT_POOL, "w") as f:
 				JSON.dump([
 					dict([(k, v) for k, v in i.__dict__.items() if k != "vendor"])

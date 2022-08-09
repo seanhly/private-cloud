@@ -3,7 +3,7 @@ from typing import List
 from user_actions.UserAction import UserAction
 from cloud.server.Pool import Pool
 from cloud.vendors.Vultr import Vultr
-from constants import EXECUTABLE, PROJECT_LABEL, LOCAL_EXECUTABLE
+from constants import EXECUTABLE, LOCAL_EXECUTABLE
 from util.scp import scp
 from util.wait_then_clear import wait_then_clear
 
@@ -19,7 +19,7 @@ class UpdateAll(UserAction):
 
 	def execute(self) -> None:
 		vendor = Vultr
-		instances = vendor.list_instances(label=PROJECT_LABEL)
+		instances = vendor.list_instances()
 		Pool.load(vendor).update(instances)
 		threads: List[Popen] = []
 		for i in instances:

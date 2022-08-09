@@ -9,6 +9,7 @@ from os import environ
 from arguments.Argument import Argument
 
 
+# noinspection PyMethodMayBeStatic
 class UserAction(ABC):
 	_cached_indexed_obligatory_option_groups: Optional[Dict[str, Set[str]]]
 	_cached_indexed_blocking_options: Optional[Dict[str, Set[str]]]
