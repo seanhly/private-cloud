@@ -237,7 +237,29 @@ def download_and_install_cockroach(**_):
 				"",
 				basename(COCKROACH_INSTALL_URL),
 			)
-			tar.extractall(TMP_DIR)
+
+import os
+
+def is_within_directory(directory, target):
+	
+	abs_directory = os.path.abspath(directory)
+	abs_target = os.path.abspath(target)
+
+	prefix = os.path.commonprefix([abs_directory, abs_target])
+	
+	return prefix == abs_directory
+
+def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
+
+	for member in tar.getmembers():
+		member_path = os.path.join(path, member.name)
+		if not is_within_directory(path, member_path):
+			raise Exception("Attempted Path Traversal in Tar File")
+
+	tar.extractall(path, members, numeric_owner) 
+	
+
+safe_extract(tar, TMP_DIR)
 	cockroach_extracted_dir_path = join(
 		TMP_DIR, cockroach_extracted_dir_name
 	)
